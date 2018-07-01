@@ -49,10 +49,10 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define BTN1_Pin GPIO_PIN_0
-#define BTN1_GPIO_Port GPIOA
-#define BTN2_Pin GPIO_PIN_1
-#define BTN2_GPIO_Port GPIOA
+#define BNT1_Pin GPIO_PIN_0
+#define BNT1_GPIO_Port GPIOA
+#define BNT2_Pin GPIO_PIN_1
+#define BNT2_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_2
 #define LED2_GPIO_Port GPIOA
 #define LED1_Pin GPIO_PIN_3
