@@ -42,6 +42,8 @@
 
 /* USER CODE BEGIN Includes */
 
+#pragma clang diagnostic ignored "-Wmissing-noreturn"
+#pragma clang diagnostic ignored "-Wunused-parameter"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -107,13 +109,13 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-noreturn"
+
   while (1)
   {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
     HAL_Delay(300);
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
