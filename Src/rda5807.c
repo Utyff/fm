@@ -5,7 +5,7 @@
 //==============================================================================
 // Инициализация i2c для обмена с rda5807
 //==============================================================================
-void rda5807_bus_init(I2C_TypeDef *I2Cx) {
+void rda5807_bus_init(I2C_HandleTypeDef *I2Cx) {
 //  i2cm_init(I2Cx, RDA5807_i2cRate);
 }
 //==============================================================================
@@ -31,7 +31,7 @@ void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count) {
 // Процедура читает из rda5807 группу регистров (кол-во RegNum) начиная с 0x0A
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
 //==============================================================================
-void rda5807_read_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum) {
+void rda5807_read_regfile(I2C_HandleTypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum) {
     // Выдаём START на шину
     if (i2cm_Start(I2Cx, RDA5807_SeqAccess_Addr, 1, RDA5807_TO)) {
         i2cm_Stop(I2Cx, RDA5807_TO);
@@ -50,21 +50,26 @@ void rda5807_read_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum) {
 // Процедура пишет в rda5807 группу регистров (кол-во RegNum) начиная с 0x02
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
 //==============================================================================
-void rda5807_write_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum) {
-    int8_t err;
+void rda5807_write_regfile(I2C_HandleTypeDef *I2cHandle, uint16_t *pBuff, uint8_t RegNum) {
+//    int8_t err;
 
-    // Выдаём START на шину
+    /*/ Выдаём START на шину
     err = i2cm_Start(I2Cx, RDA5807_SeqAccess_Addr, 0, RDA5807_TO);
     if (err) {
         i2cm_Stop(I2Cx, RDA5807_TO);
         rda5807_bus_init(I2Cx);
         return;
-    }
+    } //*/
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 
-    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
-    i2cm_Stop(I2Cx, RDA5807_TO);
+    if (HAL_I2C_Master_Transmit(I2cHandle, (uint16_t) RDA5807_SeqAccess_Addr, (uint8_t *) pBuff, RegNum << 1, 10000) !=
+        HAL_OK) {
+        Error_Handler();
+    }
+
+//    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+//    i2cm_Stop(I2Cx, RDA5807_TO);
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
@@ -75,29 +80,36 @@ void rda5807_write_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum) {
 // Процедура читает из rda5807 группу регистров (кол-во RegNum) начиная с RegAddr
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
 //==============================================================================
-void rda5807_read(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
-    // Выдаём START на шину
+void rda5807_read(I2C_HandleTypeDef *I2cHandle, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
+    /*/ Выдаём START на шину
     if (i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 0, RDA5807_TO)) {
         i2cm_Stop(I2Cx, RDA5807_TO);
         rda5807_bus_init(I2Cx);
         return;
     }
-
     if (i2cm_WriteBuff(I2Cx, &RegAddr, 1, RDA5807_TO)) {
         i2cm_Stop(I2Cx, RDA5807_TO);
         rda5807_bus_init(I2Cx);
         return;
+    } //*/
+    if (HAL_I2C_Master_Transmit(I2cHandle, (uint16_t) RDA5807_RandAccess_Addr, &RegAddr, 1, 10000) != HAL_OK) {
+        Error_Handler();
     }
 
-    // Выдаём START на шину
+    /*/ Выдаём START на шину
     if (i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 1, RDA5807_TO)) {
         i2cm_Stop(I2Cx, RDA5807_TO);
         rda5807_bus_init(I2Cx);
         return;
     }
-
     // Читаем
-    i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+    i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO); //*/
+
+    if (HAL_I2C_Master_Receive(I2cHandle, (uint16_t) RDA5807_RandAccess_Addr, (uint8_t *) pBuff, RegNum << 1, 10000)
+        != HAL_OK) {
+        Error_Handler();
+    }
+
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
 //==============================================================================
@@ -107,7 +119,7 @@ void rda5807_read(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t R
 // Процедура пишет в rda5807 группу регистров (кол-во RegNum) начиная с RegAddr
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
 //==============================================================================
-void rda5807_write(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
+void rda5807_write(I2C_HandleTypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     int8_t err;
 
     // Выдаём START на шину
@@ -135,18 +147,9 @@ void rda5807_write(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t 
 
 
 //==============================================================================
-// Процедура инициализации обмена с rda5807
-//==============================================================================
-void rda5807_init(I2C_TypeDef *I2Cx) {
-    rda5807_bus_init(I2Cx);
-}
-//==============================================================================
-
-
-//==============================================================================
 // Процедура делает программный сброс rda5807
 //==============================================================================
-void rda5807_SoftReset(I2C_TypeDef *I2Cx) {
+void rda5807_SoftReset(I2C_HandleTypeDef *I2Cx) {
     tReg02h Reg02;
 
     Reg02.bENABLE = 1;
@@ -163,7 +166,7 @@ void rda5807_SoftReset(I2C_TypeDef *I2Cx) {
 //==============================================================================
 // Процедура производит начальную настройку rda5807
 //==============================================================================
-void rda5807_SetupDefault(I2C_TypeDef *I2Cx) {
+void rda5807_SetupDefault(I2C_HandleTypeDef *I2Cx) {
     // Набор регистров rda5807 для записи настроек (кроме 0x08, 0x09)
     struct {
         tReg02h Reg02;
@@ -231,7 +234,7 @@ void rda5807_SetupDefault(I2C_TypeDef *I2Cx) {
 //==============================================================================
 // Процедура устанавливает уровень громкости (0..16) выхода rda5807. При Value=0 включает MUTE
 //==============================================================================
-void rda5807_SetVolume(I2C_TypeDef *I2Cx, uint8_t Value) {
+void rda5807_SetVolume(I2C_HandleTypeDef *I2Cx, uint8_t Value) {
     tReg02h Reg02;
     tReg05h Reg05;
     uint8_t Mute = Value ? 0 : 1;
@@ -263,7 +266,7 @@ void rda5807_SetVolume(I2C_TypeDef *I2Cx, uint8_t Value) {
 //==============================================================================
 // Процедура включает/выключает BassBoost
 //==============================================================================
-void rda5807_SetBassBoost(I2C_TypeDef *I2Cx, uint8_t Value) {
+void rda5807_SetBassBoost(I2C_HandleTypeDef *I2Cx, uint8_t Value) {
     tReg02h Reg02;
 
     // Читаем регистр 0x02
@@ -280,7 +283,7 @@ void rda5807_SetBassBoost(I2C_TypeDef *I2Cx, uint8_t Value) {
 // Процедура устанавливает текущую частоту Freq100kHz и стартует перенастройку rda5807 на эту частоту.
 // Окончание процесса можно установки можно проконтроллировать по обнулению бита STR в регистре 0x0A (функцией rda5807_Get_SeekTuneReadyFlag)
 //==============================================================================
-void rda5807_SetFreq_In100Khz(I2C_TypeDef *I2Cx, uint16_t Freq100kHz) {
+void rda5807_SetFreq_In100Khz(I2C_HandleTypeDef *I2Cx, uint16_t Freq100kHz) {
     tReg03h Reg03;
 
     // Проверка входного параметра для диапазона 87–108 MHz (US/Europe)
@@ -307,7 +310,7 @@ void rda5807_SetFreq_In100Khz(I2C_TypeDef *I2Cx, uint16_t Freq100kHz) {
 //==============================================================================
 // Функция читает текущую частоту, на которую настроен rda5807
 //==============================================================================
-uint16_t rda5807_GetFreq_In100Khz(I2C_TypeDef *I2Cx) {
+uint16_t rda5807_GetFreq_In100Khz(I2C_HandleTypeDef *I2Cx) {
     tReg0Ah Reg0A;
 
     // Читаем регистр 0x0A
@@ -329,7 +332,7 @@ uint16_t rda5807_GetFreq_In100Khz(I2C_TypeDef *I2Cx) {
 //==============================================================================
 // Процедура стартует поиск радиостанции вверх/вниз
 //==============================================================================
-void rda5807_StartSeek(I2C_TypeDef *I2Cx, uint8_t Up) {
+void rda5807_StartSeek(I2C_HandleTypeDef *I2Cx, uint8_t Up) {
     tReg02h Reg02;
 
     // Читаем регистр 0x02
@@ -349,7 +352,7 @@ void rda5807_StartSeek(I2C_TypeDef *I2Cx, uint8_t Up) {
 // Функция возвращает состояние бита STR (SeekTuneReadyFlag)
 // SeekTuneReadyFlag=1 пока идёт процесс настройки на частоту или поиск радиостанции.
 //==============================================================================
-uint8_t rda5807_Get_SeekTuneReadyFlag(I2C_TypeDef *I2Cx) {
+uint8_t rda5807_Get_SeekTuneReadyFlag(I2C_HandleTypeDef *I2Cx) {
     tReg0Ah Reg0A;
 
     // Читаем регистр 0x0A

@@ -39,6 +39,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f0xx_hal.h"
+#include "rda5807.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -109,6 +110,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+
+  rda5807_GetFreq_In100Khz(&hi2c1);
 
   while (1)
   {

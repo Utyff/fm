@@ -6,10 +6,8 @@
 #define RDA5807_SeqAccess_Addr  0x10
 #define RDA5807_RandAccess_Addr 0x11
 
-
 #define RDA5807_i2cRate         100000  // Частота работы i2c при работе с pcf8574
 #define RDA5807_TO              1000    // Длительность ожидания таймаута операций на i2c при работе с pcf8574
-
 
 
 // Возможные значения поля bANT_TYPE в регистре 0x05
@@ -21,12 +19,10 @@
 typedef struct {
     uint16_t bENABLE            :1;    // 00 Power Up Enable (0 = Disabled; 1 = Enabled)
     uint16_t bSOFT_RESET        :1;    // 01 Soft reset (0 = not reset; 1 = reset)
-    uint16_t bNEW_METHOD
-            :1;    // 02 New Demodulate Method Enable, can improve the receive sensitivity about 1dB.
+    uint16_t bNEW_METHOD        :1;    // 02 New Demodulate Method Enable, can improve the receive sensitivity about 1dB.
     uint16_t bRDS_EN            :1;    // 03 RDS/RBDS enable (1 = rds/rbds enable)
     uint16_t bCLK_MODE          :3;    // 4-6 Частота внешнего резонатора
-    uint16_t bSKMODE
-            :1;    // 07 Seek Mode (0 = wrap at the upper or lower band limit and continue seeking; 1 = stop seeking at the upper or lower band limit)
+    uint16_t bSKMODE            :1;    // 07 Seek Mode (0 = wrap at the upper or lower band limit and continue seeking; 1 = stop seeking at the upper or lower band limit)
     uint16_t bSEEK              :1;    // 08 Seek (0 = Disable stop seek; 1 = Enable)
     uint16_t bSEEKUP            :1;    // 09 Seek Up (0 = Seek down; 1 = Seek up)
     uint16_t bRCLK_DirectInput  :1;    // 10 RCLK DIRECT INPUT MODE (1 = RCLK clock use the directly input mode)
@@ -71,14 +67,12 @@ typedef struct {
     uint16_t bANT_TYPE          :2;    // 6-7 Тип антены (см. константы ANT_TYPE)
     uint16_t bSEEKTH            :4;    // 8-11 Seek SNR threshold value
     uint16_t bRSVD3             :3;    // 12-14 Reserved
-    uint16_t bINT_MODE
-            :1;    // 15 INT MODE (0 = generate 5ms interrupt; 1 = interrupt last until read reg0CH action occurs)
+    uint16_t bINT_MODE          :1;    // 15 INT MODE (0 = generate 5ms interrupt; 1 = interrupt last until read reg0CH action occurs)
 } tReg05h;      // 
 
 typedef struct {
     uint16_t bRSVD1             :13;   // 0-12 Resvered
-    uint16_t bOPEN_MODE
-            :2;    // 13-14 Open reserved register mode (11 = open behind registers writing function others: only open behind registers reading function
+    uint16_t bOPEN_MODE         :2;    // 13-14 Open reserved register mode (11 = open behind registers writing function others: only open behind registers reading function
     uint16_t bRSVD2             :1;    // 15 Reserved
 } tReg06h;      // 
 
@@ -96,19 +90,16 @@ typedef struct {
 } tReg07h;      // 
 
 typedef struct {
-    uint16_t bREADCHAN          :10;    // 0-9 Read Channel.
+    uint16_t bREADCHAN  :10;    // 0-9 Read Channel.
     // BAND = 0         Frequency = Channel Spacing (kHz) x READCHAN[9:0]+ 87.0 MHz
     // BAND = 1 or 2    Frequency = Channel Spacing (kHz) x READCHAN[9:0]+ 76.0 MHz
     // BAND = 3         Frequency = Channel Spacing (kHz) x READCHAN[9:0]+ 65.0 MHz
-    uint16_t bST                :1;     // 10 Stereo Indicator (0 = Mono; 1 = Stereo)
-    uint16_t bBLK_E
-            :1;     // 11 When RDS enable (1 = Block E has been found; 0 = no Block E has been found)
-    uint16_t bRDSS
-            :1;     // 12 RDS Synchronization (0 = RDS decoder not synchronized(default); 1 = RDS decoder synchronized)
-    uint16_t bSF                :1;     // 13 Seek Fail (0 = Seek successful; 1 = Seek failure)
-    uint16_t bSTC               :1;     // 14 Seek/Tune Complete (0 = Not complete; 1 = Complete)
-    uint16_t bRDSR
-            :1;     // 15 RDS ready (0 = No RDS/RBDS group ready(default); 1 = New RDS/RBDS group ready)
+    uint16_t bST        :1;     // 10 Stereo Indicator (0 = Mono; 1 = Stereo)
+    uint16_t bBLK_E     :1;     // 11 When RDS enable (1 = Block E has been found; 0 = no Block E has been found)
+    uint16_t bRDSS      :1;     // 12 RDS Synchronization (0 = RDS decoder not synchronized(default); 1 = RDS decoder synchronized)
+    uint16_t bSF        :1;     // 13 Seek Fail (0 = Seek successful; 1 = Seek failure)
+    uint16_t bSTC       :1;     // 14 Seek/Tune Complete (0 = Not complete; 1 = Complete)
+    uint16_t bRDSR      :1;     // 15 RDS ready (0 = No RDS/RBDS group ready(default); 1 = New RDS/RBDS group ready)
 } tReg0Ah;      // 
 
 typedef struct {
@@ -154,54 +145,54 @@ typedef union
 */
 
 // Инициализация i2c для обмена с rda5807
-void rda5807_bus_init(I2C_TypeDef *I2Cx);
+void rda5807_bus_init(I2C_HandleTypeDef *I2Cx);
 
 // Процедура меняет местами байты попарно в буфере pBuff
 void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count);
 
 // Процедура читает из rda5807 группу регистров (кол-во RegNum) начиная с 0x0A
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
-void rda5807_read_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_read_regfile(I2C_HandleTypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура пишет в rda5807 группу регистров (кол-во RegNum) начиная с 0x02
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
-void rda5807_write_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_write_regfile(I2C_HandleTypeDef *I2cHandle, uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура читает из rda5807 группу регистров (кол-во RegNum) начиная с RegAddr
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
-void rda5807_read(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_read(I2C_HandleTypeDef *I2cHandle, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура пишет в rda5807 группу регистров (кол-во RegNum) начиная с RegAddr
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
-void rda5807_write(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_write(I2C_HandleTypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура инициализации обмена с rda5807
-void rda5807_init(I2C_TypeDef *I2Cx);
+void rda5807_init(I2C_HandleTypeDef *I2Cx);
 
 // Процедура делает программный сброс rda5807
-void rda5807_SoftReset(I2C_TypeDef *I2Cx);
+void rda5807_SoftReset(I2C_HandleTypeDef *I2Cx);
 
 // Процедура производит начальную настройку rda5807
-void rda5807_SetupDefault(I2C_TypeDef *I2Cx);
+void rda5807_SetupDefault(I2C_HandleTypeDef *I2Cx);
 
 // Процедура устанавливает уровень громкости (0..16) выхода rda5807. При Value=0 включает MUTE
-void rda5807_SetVolume(I2C_TypeDef *I2Cx, uint8_t Value);
+void rda5807_SetVolume(I2C_HandleTypeDef *I2Cx, uint8_t Value);
 
 // Процедура включает/выключает BassBoost
-void rda5807_SetBassBoost(I2C_TypeDef *I2Cx, uint8_t Value);
+void rda5807_SetBassBoost(I2C_HandleTypeDef *I2Cx, uint8_t Value);
 
 // Процедура устанавливает текущую частоту Freq100kHz и стартует перенастройку rda5807 на эту частоту.
 // Окончание процесса можно установки можно проконтроллировать по обнулению бита STR в регистре 0x0A (функцией rda5807_Get_SeekTuneReadyFlag)
-void rda5807_SetFreq_In100Khz(I2C_TypeDef *I2Cx, uint16_t Freq100kHz);
+void rda5807_SetFreq_In100Khz(I2C_HandleTypeDef *I2Cx, uint16_t Freq100kHz);
 
 // Функция читает текущую частоту, на которую настроен rda5807
-uint16_t rda5807_GetFreq_In100Khz(I2C_TypeDef *I2Cx);
+uint16_t rda5807_GetFreq_In100Khz(I2C_HandleTypeDef *I2Cx);
 
 // Процедура стартует поиск радиостанции вверх/вниз
-void rda5807_StartSeek(I2C_TypeDef *I2Cx, uint8_t Up);
+void rda5807_StartSeek(I2C_HandleTypeDef *I2Cx, uint8_t Up);
 
 // Функция возвращает состояние бита STR (SeekTuneReadyFlag)
 // SeekTuneReadyFlag=1 пока идёт процесс настройки на частоту или поиск радиостанции.
-uint8_t rda5807_Get_SeekTuneReadyFlag(I2C_TypeDef *I2Cx);
+uint8_t rda5807_Get_SeekTuneReadyFlag(I2C_HandleTypeDef *I2Cx);
 
 #endif

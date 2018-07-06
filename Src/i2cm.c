@@ -4,7 +4,7 @@
 //==============================================================================
 // Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
 //==============================================================================
-/*void i2cm_init(I2C_TypeDef* I2Cx, uint32_t i2c_clock)
+/*void i2cm_init(I2C_HandleTypeDef* I2Cx, uint32_t i2c_clock)
 {
   // Стартуем тактирование GPIO и I2C1
   if (I2Cx == I2C1)
@@ -44,8 +44,8 @@
 //==============================================================================
 // Функция стартует обмен. Выдаёт условие START, выдаёт адрес слейва с признаком R/W
 //==============================================================================
-int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut) {
-    uint16_t TOcntr;
+int8_t i2cm_Start(I2C_HandleTypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut) {
+/*    uint16_t TOcntr;
 
     // Выдаём условие START
     I2C_GenerateSTART(I2Cx, ENABLE);
@@ -67,7 +67,7 @@ int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_
 
     if (!TOcntr)
         return I2C_ERR_NotConnect;
-
+//*/
     return I2C_ERR_Ok;
 }
 //==============================================================================
@@ -76,13 +76,13 @@ int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_
 //==============================================================================
 // Функция выдаёт условие STOP
 //==============================================================================
-int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut) {
-    I2C_GenerateSTOP(I2Cx, ENABLE);
+int8_t i2cm_Stop(I2C_HandleTypeDef *I2Cx, uint16_t TimeOut) {
+/*    I2C_GenerateSTOP(I2Cx, ENABLE);
     uint16_t TOcntr = TimeOut;
     while (I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF) && TOcntr);
     if (!TOcntr)
         return I2C_ERR_HWerr;
-
+//*/
     return I2C_ERR_Ok;
 }
 //==============================================================================
@@ -91,8 +91,8 @@ int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut) {
 //==============================================================================
 // Функция выдаёт на шину массив байт из буфера
 //==============================================================================
-int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
-    uint16_t TOcntr;
+int8_t i2cm_WriteBuff(I2C_HandleTypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
+/*    uint16_t TOcntr;
 
     while (len--) {
         I2C_SendData(I2Cx, *(pbuf++));
@@ -101,7 +101,7 @@ int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t T
         if (!TOcntr)
             return I2C_ERR_NotConnect;
     }
-
+//*/
     return I2C_ERR_Ok;
 }
 //==============================================================================
@@ -110,9 +110,9 @@ int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t T
 //==============================================================================
 // Функция читает массив байт с шины и выдаёт условие STOP
 //==============================================================================
-int8_t i2cm_ReadBuffAndStop(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
+int8_t i2cm_ReadBuffAndStop(I2C_HandleTypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
     uint16_t TOcntr;
-
+/*
     // Разрешаем выдачу подтверждений ACK
     I2C_AcknowledgeConfig(I2Cx, ENABLE);
 
@@ -131,7 +131,7 @@ int8_t i2cm_ReadBuffAndStop(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint
     *pbuf++ = I2C_ReceiveData(I2Cx);             // Читаем N-2 байт
 
     i2cm_Stop(I2Cx, TimeOut);
-
+//*/
     return I2C_ERR_Ok;
 }
 //==============================================================================
