@@ -121,7 +121,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
 
   }
-#pragma clang diagnostic pop
+
   /* USER CODE END 3 */
 
 }
