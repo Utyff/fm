@@ -53,9 +53,9 @@
 #define BNT1_GPIO_Port GPIOA
 #define BNT2_Pin GPIO_PIN_1
 #define BNT2_GPIO_Port GPIOA
-#define LED2_Pin GPIO_PIN_2
+#define LED2_Pin GPIO_PIN_11
 #define LED2_GPIO_Port GPIOA
-#define LED1_Pin GPIO_PIN_3
+#define LED1_Pin GPIO_PIN_12
 #define LED1_GPIO_Port GPIOA
 
 /* ########################## Assert Selection ############################## */
