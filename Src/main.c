@@ -41,6 +41,7 @@
 #include "stm32f0xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include "rda5807.h"
 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -139,7 +140,10 @@ int main(void)
 
 //  rda5807_GetFreq_In100Khz(&hi2c1);
   uint8_t ii = 0;
-  i2c_scan();
+  uint8_t buf[2] = {0,0};
+  HAL_StatusTypeDef err = HAL_I2C_Mem_Read(&hi2c1, RDA5807_RandAccess_Addr, 0, I2C_MEMADD_SIZE_8BIT,  buf, 1, 1000);
+  printf( "\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
+  // i2c_scan();
 
   while (1)
   {
