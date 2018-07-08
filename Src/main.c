@@ -73,7 +73,7 @@ static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN 0 */
 
-void i2c_scan();
+//void i2c_scan();
 
 /* Direct printf to output somewhere */
 #ifdef __GNUC__
@@ -141,7 +141,7 @@ int main(void)
 //  rda5807_GetFreq_In100Khz(&hi2c1);
   uint8_t ii = 0;
   uint8_t buf[2] = {0,0};
-  HAL_StatusTypeDef err = HAL_I2C_Mem_Read(&hi2c1, RDA5807_RandAccess_Addr, 0, I2C_MEMADD_SIZE_8BIT,  buf, 1, 1000);
+  HAL_StatusTypeDef err = HAL_I2C_Mem_Read(&hi2c1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT,  buf, 1, 1000);
   printf( "\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
   // i2c_scan();
 

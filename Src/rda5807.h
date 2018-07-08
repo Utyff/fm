@@ -3,8 +3,8 @@
 
 #include "stm32f0xx_hal.h"
 
-#define RDA5807_SeqAccess_Addr  0x10
-#define RDA5807_RandAccess_Addr 0x11
+#define RDA5807_SeqAccess_Addr  0x10u
+#define RDA5807_RandAccess_Addr 0x11u
 
 #define RDA5807_i2cRate         100000  // Частота работы i2c при работе с pcf8574
 #define RDA5807_TO              1000    // Длительность ожидания таймаута операций на i2c при работе с pcf8574
