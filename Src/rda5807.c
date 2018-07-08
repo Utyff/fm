@@ -1,5 +1,7 @@
 #include "rda5807.h"
-#include "i2cm.h"
+
+uint8_t buf10[64];
+uint8_t buf11[64];
 
 
 //==============================================================================
@@ -14,8 +16,43 @@ void rda5807_init(I2C_HandleTypeDef *I2Cx) {
     if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
         Error_Handler();
     }
+    err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1,
+                           RDA5807_TO);
+    printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
 
-    //rda5807_SetupDefault(I2Cx);
+    if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
+        Error_Handler();
+    }
+
+    int i;
+    for (i = 0; i < 64; i++) {
+        buf10[i] = 0;
+        buf11[i] = 0;
+    }
+
+    err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf11, 64, RDA5807_TO);
+    if (err != HAL_OK) {
+        Error_Handler();
+    }
+    err = HAL_I2C_Master_Receive(I2Cx, RDA5807_SeqAccess_Addr << 1u, buf10, 64, RDA5807_TO);
+    if (err != HAL_OK) {
+        Error_Handler();
+    }
+
+    for (i = 0; i < 64; i++) { printf(" %02x", buf10[i]); }
+    printf("\n\r");
+    for (i = 0; i < 64; i++) { printf(" %02x", buf11[i]); }
+    printf("\n\r");
+
+    rda5807_SoftReset(I2Cx);
+    rda5807_SetupDefault(I2Cx);
+
+    printf("start freq: %u \n\r", rda5807_GetFreq_In100Khz(I2Cx));
+    rda5807_StartSeek(I2Cx, 1);
+    while (rda5807_Get_SeekTuneReadyFlag(I2Cx))
+        printf(".");
+    printf(" ---\n\r");
+    printf("tuned freq: %u \n\r", rda5807_GetFreq_In100Khz(I2Cx));
 }
 //==============================================================================
 
@@ -40,13 +77,18 @@ void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count) {
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
 //==============================================================================
 void rda5807_read_regfile(I2C_HandleTypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum) {
-    // Выдаём START на шину
+    /*/ Выдаём START на шину
     if (i2cm_Start(I2Cx, RDA5807_SeqAccess_Addr, 1, RDA5807_TO)) {
         Error_Handler();
     }
 
     // Читаем
-    i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+    i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO); //*/
+    if (HAL_I2C_Master_Receive(I2Cx, (uint16_t) RDA5807_SeqAccess_Addr << 1u,
+                               (uint8_t *) pBuff, RegNum << 1, RDA5807_TO) != HAL_OK) {
+        Error_Handler();
+    }
+
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
 //==============================================================================
@@ -67,13 +109,13 @@ void rda5807_write_regfile(I2C_HandleTypeDef *I2cHandle, uint16_t *pBuff, uint8_
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 
+//    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+//    i2cm_Stop(I2Cx, RDA5807_TO);
+
     if (HAL_I2C_Master_Transmit(I2cHandle, (uint16_t) RDA5807_SeqAccess_Addr << 1u,
                                 (uint8_t *) pBuff, RegNum << 1, RDA5807_TO) != HAL_OK) {
         Error_Handler();
     }
-
-//    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
-//    i2cm_Stop(I2Cx, RDA5807_TO);
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
@@ -101,7 +143,7 @@ void rda5807_read(I2C_HandleTypeDef *I2cHandle, uint8_t RegAddr, uint16_t *pBuff
     i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO); //*/
 
     HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2cHandle, RDA5807_RandAccess_Addr << 1u, RegAddr,
-            I2C_MEMADD_SIZE_8BIT, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+                                             I2C_MEMADD_SIZE_8BIT, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
 
     if (err != HAL_OK) {
         Error_Handler();
@@ -117,9 +159,9 @@ void rda5807_read(I2C_HandleTypeDef *I2cHandle, uint8_t RegAddr, uint16_t *pBuff
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
 //==============================================================================
 void rda5807_write(I2C_HandleTypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
-    int8_t err;
+    //int8_t err;
 
-    // Выдаём START на шину
+    /*/ Выдаём START на шину
     err = i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 0, RDA5807_TO);
     if (err) {
         Error_Handler();
@@ -127,12 +169,19 @@ void rda5807_write(I2C_HandleTypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, ui
 
     if (i2cm_WriteBuff(I2Cx, &RegAddr, 1, RDA5807_TO)) {
         Error_Handler();
-    }
+    } //*/
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 
-    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
-    i2cm_Stop(I2Cx, RDA5807_TO);
+    //err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+    //i2cm_Stop(I2Cx, RDA5807_TO);
+
+    HAL_StatusTypeDef err = HAL_I2C_Mem_Write(I2Cx, RDA5807_RandAccess_Addr << 1u, RegAddr,
+                                              I2C_MEMADD_SIZE_8BIT, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+
+    if (err != HAL_OK) {
+        Error_Handler();
+    }
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
