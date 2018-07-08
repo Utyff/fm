@@ -73,8 +73,6 @@ static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN 0 */
 
-//void i2c_scan();
-
 /* Direct printf to output somewhere */
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
@@ -92,7 +90,6 @@ PUTCHAR_PROTOTYPE
   /* Place your implementation of fputc here */
   /* e.g. write a character to the USART2 and Loop until the end of transmission */
   HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
-
   return ch;
 }
 
@@ -136,18 +133,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  rda5807_init(&hi2c1);
   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
-//  rda5807_GetFreq_In100Khz(&hi2c1);
-  uint8_t ii = 0;
-  uint8_t buf[2] = {0,0};
-  HAL_StatusTypeDef err = HAL_I2C_Mem_Read(&hi2c1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT,  buf, 1, 1000);
-  printf( "\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
-  // i2c_scan();
-
-  while (1)
-  {
-    printf(" 0x%02x --- \n\r", ii++);
+  while (1)  {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED2_Pin);
     HAL_Delay(300);

@@ -6,7 +6,6 @@
 #define RDA5807_SeqAccess_Addr  0x10u
 #define RDA5807_RandAccess_Addr 0x11u
 
-#define RDA5807_i2cRate         100000  // Частота работы i2c при работе с pcf8574
 #define RDA5807_TO              1000    // Длительность ожидания таймаута операций на i2c при работе с pcf8574
 
 
@@ -17,20 +16,21 @@
 #define ANT_TYPE_Both           3       // Оба
 
 typedef struct {
-    uint16_t bENABLE            :1;    // 00 Power Up Enable (0 = Disabled; 1 = Enabled)
-    uint16_t bSOFT_RESET        :1;    // 01 Soft reset (0 = not reset; 1 = reset)
-    uint16_t bNEW_METHOD        :1;    // 02 New Demodulate Method Enable, can improve the receive sensitivity about 1dB.
-    uint16_t bRDS_EN            :1;    // 03 RDS/RBDS enable (1 = rds/rbds enable)
-    uint16_t bCLK_MODE          :3;    // 4-6 Частота внешнего резонатора
-    uint16_t bSKMODE            :1;    // 07 Seek Mode (0 = wrap at the upper or lower band limit and continue seeking; 1 = stop seeking at the upper or lower band limit)
-    uint16_t bSEEK              :1;    // 08 Seek (0 = Disable stop seek; 1 = Enable)
-    uint16_t bSEEKUP            :1;    // 09 Seek Up (0 = Seek down; 1 = Seek up)
-    uint16_t bRCLK_DirectInput  :1;    // 10 RCLK DIRECT INPUT MODE (1 = RCLK clock use the directly input mode)
-    uint16_t bRCLK_NonCalibMode :1;    // 11 RCLK NON-CALIBRATE MODE
-    uint16_t bBASS              :1;    // 12 Bass Boost (0 = Disabled; 1 = Bass boost enabled)
-    uint16_t bMONO              :1;    // 13 Mono Select (0 = Stereo; 1 = Force mono)
-    uint16_t bDMUTE             :1;    // 14 Mute Disable (0 = Mute; 1 = Normal operation)
-    uint16_t bDHIZ              :1;    // 15 Audio Output High-Z Disable (0 = High impedance; 1 = Normal operation)
+    uint16_t bENABLE            :1;   // 00 Power Up Enable (0 = Disabled; 1 = Enabled)
+    uint16_t bSOFT_RESET        :1;   // 01 Soft reset (0 = not reset; 1 = reset)
+    uint16_t bNEW_METHOD        :1;   // 02 New Demodulate Method Enable, can improve the receive sensitivity about 1dB.
+    uint16_t bRDS_EN            :1;   // 03 RDS/RBDS enable (1 = rds/rbds enable)
+    uint16_t bCLK_MODE          :3;   // 4-6 Частота внешнего резонатора
+    uint16_t bSKMODE            :1;   // 07 Seek Mode (0 = wrap at the upper or lower band limit and continue seeking;
+                                      //               1 = stop seeking at the upper or lower band limit)
+    uint16_t bSEEK              :1;   // 08 Seek (0 = Disable stop seek; 1 = Enable)
+    uint16_t bSEEKUP            :1;   // 09 Seek Up (0 = Seek down; 1 = Seek up)
+    uint16_t bRCLK_DirectInput  :1;   // 10 RCLK DIRECT INPUT MODE (1 = RCLK clock use the directly input mode)
+    uint16_t bRCLK_NonCalibMode :1;   // 11 RCLK NON-CALIBRATE MODE
+    uint16_t bBASS              :1;   // 12 Bass Boost (0 = Disabled; 1 = Bass boost enabled)
+    uint16_t bMONO              :1;   // 13 Mono Select (0 = Stereo; 1 = Force mono)
+    uint16_t bDMUTE             :1;   // 14 Mute Disable (0 = Mute; 1 = Normal operation)
+    uint16_t bDHIZ              :1;   // 15 Audio Output High-Z Disable (0 = High impedance; 1 = Normal operation)
 } tReg02h;      // 
 
 typedef struct {
@@ -67,12 +67,14 @@ typedef struct {
     uint16_t bANT_TYPE          :2;    // 6-7 Тип антены (см. константы ANT_TYPE)
     uint16_t bSEEKTH            :4;    // 8-11 Seek SNR threshold value
     uint16_t bRSVD3             :3;    // 12-14 Reserved
-    uint16_t bINT_MODE          :1;    // 15 INT MODE (0 = generate 5ms interrupt; 1 = interrupt last until read reg0CH action occurs)
+    uint16_t bINT_MODE          :1;    // 15 INT MODE (0 = generate 5ms interrupt;
+                                       //              1 = interrupt last until read reg0CH action occurs)
 } tReg05h;      // 
 
 typedef struct {
     uint16_t bRSVD1             :13;   // 0-12 Resvered
-    uint16_t bOPEN_MODE         :2;    // 13-14 Open reserved register mode (11 = open behind registers writing function others: only open behind registers reading function
+    uint16_t bOPEN_MODE         :2;    // 13-14 Open reserved register mode (11 = open behind registers writing
+                                       //        function others: only open behind registers reading function
     uint16_t bRSVD2             :1;    // 15 Reserved
 } tReg06h;      // 
 
@@ -96,24 +98,24 @@ typedef struct {
     // BAND = 3         Frequency = Channel Spacing (kHz) x READCHAN[9:0]+ 65.0 MHz
     uint16_t bST        :1;     // 10 Stereo Indicator (0 = Mono; 1 = Stereo)
     uint16_t bBLK_E     :1;     // 11 When RDS enable (1 = Block E has been found; 0 = no Block E has been found)
-    uint16_t bRDSS      :1;     // 12 RDS Synchronization (0 = RDS decoder not synchronized(default); 1 = RDS decoder synchronized)
+    uint16_t bRDSS      :1;     // 12 RDS Synchronization (0 = RDS decoder not synchronized(default);
+                                //                         1 = RDS decoder synchronized)
     uint16_t bSF        :1;     // 13 Seek Fail (0 = Seek successful; 1 = Seek failure)
     uint16_t bSTC       :1;     // 14 Seek/Tune Complete (0 = Not complete; 1 = Complete)
     uint16_t bRDSR      :1;     // 15 RDS ready (0 = No RDS/RBDS group ready(default); 1 = New RDS/RBDS group ready)
 } tReg0Ah;      // 
 
 typedef struct {
-    uint16_t bBLERB
-            :2;     // 0-1 Block Errors Level of RDS_DATA_1, and is always read as Errors Level of RDS BLOCK B (in RDS mode ) or E (in RBDS mode when ABCD_E flag is 1)
-    uint16_t bBLERA
-            :2;     // 2-3 Block Errors Level of RDS_DATA_0, and is always read as Errors Level of RDS BLOCK A (in RDS mode) or BLOCK E (in RBDS mode when ABCD_E flag is 1)
-    uint16_t bABCD_E
-            :1;     // 04 (1 = the block id of register 0cH,0dH,0eH,0fH is E; 0 = the block id of register 0cH, 0dH, 0eH,0fH is A, B, C, D)
-    uint16_t bRSVD1             :2;     // 5-6 Resvered
-    uint16_t bFM_READY          :1;     // 07 1 = ready; 0 = not ready
-    uint16_t bFM_TRUE
-            :1;     // 08 1 = the current channel is a station; 0 = the current channel is not a station
-    uint16_t bRSSI              :7;     // 9-15 RSSI (000000 = min; 111111 = max) RSSI scale is logarithmic
+    uint16_t bBLERB     :2;     // 0-1 Block Errors Level of RDS_DATA_1, and is always read as Errors Level
+                                //     of RDS BLOCK B (in RDS mode ) or E (in RBDS mode when ABCD_E flag is 1)
+    uint16_t bBLERA     :2;     // 2-3 Block Errors Level of RDS_DATA_0, and is always read as Errors Level
+                                //     of RDS BLOCK A (in RDS mode) or BLOCK E (in RBDS mode when ABCD_E flag is 1)
+    uint16_t bABCD_E    :1;     // 04 (1 = the block id of register 0cH,0dH,0eH,0fH is E; 0 = the block id
+                                //          of register 0cH, 0dH, 0eH,0fH is A, B, C, D)
+    uint16_t bRSVD1     :2;     // 5-6 Resvered
+    uint16_t bFM_READY  :1;     // 07 1 = ready; 0 = not ready
+    uint16_t bFM_TRUE   :1;     // 08 1 = the current channel is a station; 0 = the current channel is not a station
+    uint16_t bRSSI      :7;     // 9-15 RSSI (000000 = min; 111111 = max) RSSI scale is logarithmic
 } tReg0Bh;      // 
 
 
@@ -143,9 +145,6 @@ typedef union
   uint8_t Bytes[28];
 } tRDA5807_RegFile;
 */
-
-// Инициализация i2c для обмена с rda5807
-void rda5807_bus_init(I2C_HandleTypeDef *I2Cx);
 
 // Процедура меняет местами байты попарно в буфере pBuff
 void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count);
