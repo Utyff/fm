@@ -53,8 +53,6 @@
 #define BNT1_GPIO_Port GPIOA
 #define BNT2_Pin GPIO_PIN_1
 #define BNT2_GPIO_Port GPIOA
-#define OLED_RST_Pin GPIO_PIN_4
-#define OLED_RST_GPIO_Port GPIOA
 #define OLED_DC_Pin GPIO_PIN_6
 #define OLED_DC_GPIO_Port GPIOA
 #define OLED_CS_Pin GPIO_PIN_1

@@ -55,12 +55,12 @@
 #define SSD1306_DC_Pin          GPIO_PIN_6
 #endif
 
-#ifndef SSD1306_Reset_Port
+/*#ifndef SSD1306_Reset_Port
 #define SSD1306_Reset_Port      GPIOA
 #endif
 #ifndef SSD1306_Reset_Pin
 #define SSD1306_Reset_Pin       GPIO_PIN_4
-#endif
+#endif //*/
 
 /* ^^^ SPI config ^^^ */
 
