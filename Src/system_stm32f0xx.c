@@ -28,9 +28,9 @@
   *-----------------------------------------------------------------------------
   *        System Clock source                    | HSI
   *-----------------------------------------------------------------------------
-  *        SYSCLK(Hz)                             | 8000000
+  *        SYSCLK(Hz)                             | 48000000
   *-----------------------------------------------------------------------------
-  *        HCLK(Hz)                               | 8000000
+  *        HCLK(Hz)                               | 48000000
   *-----------------------------------------------------------------------------
   *        AHB Prescaler                          | 1
   *-----------------------------------------------------------------------------
@@ -110,6 +110,11 @@
 #define HSI48_VALUE    ((uint32_t)48000000) /*!< Default value of the HSI48 Internal oscillator in Hz.
                                                  This value can be provided and adapted by the user application. */
 #endif /* HSI48_VALUE */
+
+#if !defined  (HSE_STARTUP_TIMEOUT)
+#define HSE_STARTUP_TIMEOUT   ((uint16_t)0x5000) /*!< Time out for HSE start up */
+#endif /* HSE_STARTUP_TIMEOUT */
+
 /**
   * @}
   */
@@ -133,10 +138,10 @@
                call the 2 first functions listed above, since SystemCoreClock variable is 
                updated automatically.
   */
-uint32_t SystemCoreClock = 8000000;
+uint32_t SystemCoreClock = 8000000; // TODO  48 ?
 
 const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4};
+const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4}; // TODO  remove ?
 
 /**
   * @}
@@ -145,6 +150,8 @@ const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4};
 /** @addtogroup STM32F0xx_System_Private_FunctionPrototypes
   * @{
   */
+
+static void SetSysClock(void);
 
 /**
   * @}
@@ -218,6 +225,9 @@ void SystemInit(void)
 
   /* Disable all interrupts */
   RCC->CIR = 0x00000000U;
+
+	/* Configure the System clock frequency, AHB/APBx prescalers and Flash settings */
+  SetSysClock();
 
 }
 
@@ -315,6 +325,52 @@ void SystemCoreClockUpdate (void)
   tmp = AHBPrescTable[((RCC->CFGR & RCC_CFGR_HPRE) >> 4)];
   /* HCLK clock frequency */
   SystemCoreClock >>= tmp;
+}
+
+
+/**
+  * @brief  Configures the System clock frequency, AHB/APBx prescalers and Flash
+  *         settings.
+  * @note   This function should be called only once the RCC clock configuration
+  *         is reset to the default reset state (done in SystemInit() function).
+  * @param  None
+  * @retval None
+  */
+static void SetSysClock(void)
+{
+  /* SYSCLK, HCLK, PCLK configuration ----------------------------------------*/
+
+  /* At this stage the HSI is already enabled */
+
+  /* Enable Prefetch Buffer and set Flash Latency */
+  FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
+
+  /* HCLK = SYSCLK */
+  RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
+
+  /* PCLK = HCLK */
+  RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE_DIV1;
+
+  /* PLL configuration = (HSI/2) * 12 = ~48 MHz */
+  RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL));
+  RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL12);
+
+  /* Enable PLL */
+  RCC->CR |= RCC_CR_PLLON;
+
+  /* Wait till PLL is ready */
+  while((RCC->CR & RCC_CR_PLLRDY) == 0)
+  {
+  }
+
+  /* Select PLL as system clock source */
+  RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
+  RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
+
+  /* Wait till PLL is used as system clock source */
+  while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL)
+  {
+  }
 }
 
 /**
