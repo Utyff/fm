@@ -1,4 +1,4 @@
-#include <main.h>
+#include "stm32f0xx.h"
 
 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -13,36 +13,34 @@ void Configure_EXTI(void);
 
 int main(void) {
 
-    SystemCoreClockUpdate();
-
     Configure_GPIO_LED();
     Configure_GPIO_Button();
     Configure_EXTI();
 
-    LED1_GPIO_Port->ODR ^= LED1_Pin;
+    GPIOA->ODR ^= GPIO_ODR_6;
 
     while (1) {
-        // toggle LED1
-        LED1_GPIO_Port->ODR ^= LED1_Pin;
-        LED2_GPIO_Port->ODR ^= LED2_Pin;
-        int count = 10000;
+        // toggle green LED
+        GPIOA->ODR ^= GPIO_ODR_6;
+        GPIOA->ODR ^= GPIO_ODR_5;
+        uint32_t count = 1000000;
         while (count--);
     }
 }
 
 /**
   * @brief  This function :
-             - Enables GPIOA clock
-             - Configures the Green LED1 pin on GPIO PA12
-             - Configures the orange LED2 pin on GPIO PA11
+             - Enables GPIO clock
+             - Configures the Green LED pin on GPIO PC9
+             - Configures the orange LED pin on GPIO PC8
   */
 __INLINE void Configure_GPIO_LED(void) {
-    // Enable the peripheral clock of GPIOx port
+    // Enable the peripheral clock of GPIOA
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    // Select output mode (01) on LED1 and LED2
-    LED1_GPIO_Port->MODER = (LED1_GPIO_Port->MODER & ~(GPIO_MODER_MODER11 | GPIO_MODER_MODER12)) |
-                            (GPIO_MODER_MODER11_0 | GPIO_MODER_MODER12_0);
+    // Select output mode (01) on PC8 and PC9
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5 | GPIO_MODER_MODER6))
+                   | (GPIO_MODER_MODER5_0 | GPIO_MODER_MODER6_0);
 }
 
 /**
@@ -69,11 +67,11 @@ __INLINE void Configure_EXTI(void) {
     /* (3) Rising edge */
     /* (4) Set priority */
     /* (5) Enable EXTI0_1_IRQn */
-/*    SYSCFG->EXTICR[0] = (SYSCFG->EXTICR[0] & ~SYSCFG_EXTICR1_EXTI0) | SYSCFG_EXTICR1_EXTI0_PA; // (1)
-    EXTI->IMR |= EXTI_IMR_MR0; // (2)
-    EXTI->RTSR |= EXTI_RTSR_TR0; // (3)
-    NVIC_SetPriority(EXTI0_1_IRQn, 0); // (4)
-    NVIC_EnableIRQ(EXTI0_1_IRQn); // (5) */
+//    SYSCFG->EXTICR[0] = (SYSCFG->EXTICR[0] & ~SYSCFG_EXTICR1_EXTI0) | SYSCFG_EXTICR1_EXTI0_PA; /* (1) */
+//    EXTI->IMR |= EXTI_IMR_MR0; /* (2) */
+//    EXTI->RTSR |= EXTI_RTSR_TR0; /* (3) */
+//    NVIC_SetPriority(EXTI0_1_IRQn, 0); /* (4) */
+//    NVIC_EnableIRQ(EXTI0_1_IRQn); /* (5) */
 }
 
 /******************************************************************************/
@@ -82,16 +80,12 @@ __INLINE void Configure_EXTI(void) {
 
 /**
   * @brief  This function handles NMI exception.
-  * @param  None
-  * @retval None
   */
 void NMI_Handler(void) {
 }
 
 /**
   * @brief  This function handles Hard Fault exception.
-  * @param  None
-  * @retval None
   */
 void HardFault_Handler(void) {
     /* Go to infinite loop when Hard Fault exception occurs */
@@ -100,25 +94,7 @@ void HardFault_Handler(void) {
 }
 
 /**
-  * @brief  This function handles SVCall exception.
-  * @param  None
-  * @retval None
-  */
-void SVC_Handler(void) {
-}
-
-/**
-  * @brief  This function handles PendSVC exception.
-  * @param  None
-  * @retval None
-  */
-void PendSV_Handler(void) {
-}
-
-/**
   * @brief  This function handles SysTick Handler.
-  * @param  None
-  * @retval None
   */
 uint32_t stick = 0;
 
@@ -129,10 +105,13 @@ void SysTick_Handler(void) {
 
 /**
   * @brief  This function handles EXTI 0 1 interrupt request.
-  * @param  None
-  * @retval None
   */
 void EXTI0_1_IRQHandler(void) {
     EXTI->PR |= 1;
-// TODO
+}
+
+/**
+  * @brief  This function handles I2C1 interrupt request.
+  */
+void I2C1_IRQHandler(void) {
 }
