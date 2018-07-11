@@ -10,14 +10,25 @@ void Configure_GPIO_Button(void);
 
 void Configure_EXTI(void);
 
+void Configure_GPIO_USART1();
+
+void Configure_USART1(void);
+
+
+uint8_t send = 0;
+const uint8_t stringtosend[32] = "STm\n";
 
 int main(void) {
 
+    SysTick_Config(48000);
     Configure_GPIO_LED();
     Configure_GPIO_Button();
     Configure_EXTI();
+    Configure_GPIO_USART1();
+    Configure_USART1();
 
     GPIOA->ODR ^= GPIO_ODR_6;
+    uint32_t sendCount=100;
 
     while (1) {
         // toggle green LED
@@ -25,6 +36,14 @@ int main(void) {
         GPIOA->ODR ^= GPIO_ODR_5;
         uint32_t count = 1000000;
         while (count--);
+
+        if(++sendCount>5) {
+            sendCount=0;
+            // start USART transmission
+            // Will initiate TC if TXE
+            USART1->TDR = stringtosend[send++];
+        }
+
     }
 }
 
@@ -56,6 +75,52 @@ __INLINE void Configure_GPIO_Button(void) {
     /* Select input mode (00) on PA0 */
 //    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER0));
 }
+
+/**
+  * @brief  This function :
+             - Enables GPIO clock
+             - Configures the USART1 pins on GPIO PB6 PB7
+  */
+__INLINE void Configure_GPIO_USART1(void) {
+    /* Enable the peripheral clock of GPIOA */
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+
+    /* GPIO configuration for USART1 signals */
+    /* (1) Select AF mode (10) on PA9 and PA10 */
+    /* (2) AF1 for USART1 signals */
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER9 | GPIO_MODER_MODER10))
+                   | (GPIO_MODER_MODER9_1 | GPIO_MODER_MODER10_1); /* (1) */
+    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2))
+                    | (1 << (1 * 4)) | (1 << (2 * 4)); /* (2) */
+}
+
+/**
+  * @brief  This function configures USART1.
+  */
+__INLINE void Configure_USART1(void) {
+    /* Enable the peripheral clock USART1 */
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+
+    /* Configure USART1 */
+    /* (1) oversampling by 16, 9600 baud */
+    /* (2) 8 data bit, 1 start bit, 1 stop bit, no parity */
+    USART1->BRR = 480000 / 96; /* (1) */
+    USART1->CR1 = USART_CR1_TE | USART_CR1_UE; /* (2) */
+
+    /* polling idle frame Transmission */
+    while ((USART1->ISR & USART_ISR_TC) != USART_ISR_TC) {
+        /* add time out here for a robust application */
+    }
+    USART1->ICR |= USART_ICR_TCCF;/* clear TC flag */
+    USART1->CR1 |= USART_CR1_TCIE;/* enable TC interrupt */
+
+    /* Configure IT */
+    /* (3) Set priority for USART1_IRQn */
+    /* (4) Enable USART1_IRQn */
+    NVIC_SetPriority(USART1_IRQn, 0); /* (3) */
+    NVIC_EnableIRQ(USART1_IRQn); /* (4) */
+}
+
 
 /**
   * @brief  This function configures EXTI.
@@ -114,4 +179,24 @@ void EXTI0_1_IRQHandler(void) {
   * @brief  This function handles I2C1 interrupt request.
   */
 void I2C1_IRQHandler(void) {
+}
+
+/**
+  * @brief  This function handles USART1 interrupt request.
+  */
+void USART1_IRQHandler(void) {
+    if ((USART1->ISR & USART_ISR_TC) == USART_ISR_TC) {
+//        if(send == sizeof(stringtosend))
+        if (stringtosend[send] == 0) {
+            send = 0;
+            USART1->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
+            GPIOC->ODR ^= GPIO_ODR_9; /* Toggle Green LED */
+        } else {
+            /* clear transfer complete flag and fill TDR with a new char */
+            USART1->TDR = stringtosend[send++];
+        }
+    } else {
+        NVIC_DisableIRQ(USART1_IRQn); /* Disable USART1_IRQn */
+    }
+
 }
