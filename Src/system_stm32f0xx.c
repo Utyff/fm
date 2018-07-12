@@ -26,7 +26,7 @@
   *=============================================================================
   *                         Supported STM32F0xx device
   *-----------------------------------------------------------------------------
-  *        System Clock source                    | HSI
+  *        System Clock source                    | HSI48
   *-----------------------------------------------------------------------------
   *        SYSCLK(Hz)                             | 48000000
   *-----------------------------------------------------------------------------
@@ -138,10 +138,10 @@
                call the 2 first functions listed above, since SystemCoreClock variable is 
                updated automatically.
   */
-uint32_t SystemCoreClock = 8000000; // TODO  48 ?
+uint32_t SystemCoreClock = 48000000; // TODO  48 ?
 
 const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4}; // TODO  remove ?
+//const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4}; // TODO  remove ?
 
 /**
   * @}
