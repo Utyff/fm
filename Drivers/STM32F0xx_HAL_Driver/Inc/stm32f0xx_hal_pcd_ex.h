@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    stm32f0xx_hal_spi_ex.h
+  * @file    stm32f0xx_hal_pcd_ex.h
   * @author  MCD Application Team
-  * @brief   Header file of SPI HAL Extended module.
+  * @brief   Header file of PCD HAL Extension module.
   ******************************************************************************
   * @attention
   *
@@ -31,44 +31,51 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+  */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F0xx_HAL_SPI_EX_H
-#define __STM32F0xx_HAL_SPI_EX_H
+#ifndef __STM32F0xx_HAL_PCD_EX_H
+#define __STM32F0xx_HAL_PCD_EX_H
 
 #ifdef __cplusplus
-extern "C" {
+ extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f0xx_hal_def.h"
+#if defined(STM32F042x6) || defined(STM32F048xx) || defined(STM32F072xB) || defined(STM32F078xx)|| defined(STM32F070xB)|| defined(STM32F070x6)
 
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f0xx_hal_def.h"  
+   
 /** @addtogroup STM32F0xx_HAL_Driver
   * @{
   */
 
-/** @addtogroup SPIEx
+/** @addtogroup PCDEx
   * @{
-  */
+  */ 
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macros -----------------------------------------------------------*/
+/* Internal macros -----------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-/** @addtogroup SPIEx_Exported_Functions
+/** @addtogroup PCDEx_Exported_Functions PCDEx Exported Functions
   * @{
   */
-
-/* Initialization and de-initialization functions  ****************************/
-/* IO operation functions *****************************************************/
-/** @addtogroup SPIEx_Exported_Functions_Group1
+/** @addtogroup PCDEx_Exported_Functions_Group1 Peripheral Control functions
   * @{
-  */
-HAL_StatusTypeDef HAL_SPIEx_FlushRxFifo(SPI_HandleTypeDef *hspi);
+  */   
+HAL_StatusTypeDef HAL_PCDEx_PMAConfig(PCD_HandleTypeDef *hpcd, 
+                                     uint16_t ep_addr,
+                                     uint16_t ep_kind,
+                                     uint32_t pmaadress);
 /**
   * @}
-  */
+  */ 
+  
+/**
+  * @}
+  */ 
 
 /**
   * @}
@@ -76,16 +83,16 @@ HAL_StatusTypeDef HAL_SPIEx_FlushRxFifo(SPI_HandleTypeDef *hspi);
 
 /**
   * @}
-  */
+  */   
 
-/**
-  * @}
-  */
+#endif /* STM32F042x6 || STM32F072xB || STM32F078xx || STM32F070xB || STM32F070x6*/
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32F0xx_HAL_SPI_EX_H */
+
+#endif /* __STM32F0xx_HAL_PCD_EX_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
