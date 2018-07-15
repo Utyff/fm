@@ -33,11 +33,11 @@ PROJECT(fm C ASM)
 set(CMAKE_CXX_STANDARD 11)
 
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 )
-add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F042x6 )
+add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DSTM32F042x6 -DUSE_FULL_LL_DRIVER -DHSE_VALUE=8000000 -DHSE_STARTUP_TIMEOUT=100 -DLSE_STARTUP_TIMEOUT=5000 -DLSE_VALUE=32768 -DHSI_VALUE=8000000 -DLSI_VALUE=40000 -DVDD_VALUE=3300 -DPREFETCH_ENABLE=1 -DINSTRUCTION_CACHE_ENABLE=0 -DDATA_CACHE_ENABLE=0 )
 
 file(GLOB_RECURSE SOURCES "USB_DEVICE/*.*" "Middlewares/*.*" "startup/*.*" "Drivers/*.*" "Src/*.*" "Inc/*.*")
 
-include_directories(Inc Drivers/STM32F0xx_HAL_Driver/Inc Drivers/STM32F0xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F0xx/Include Drivers/CMSIS/Include)
+include_directories(Inc Drivers/STM32F0xx_HAL_Driver/Inc Drivers/CMSIS/Device/ST/STM32F0xx/Include Drivers/CMSIS/Include)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
