@@ -82,16 +82,16 @@ __INLINE void Configure_GPIO_Button(void) {
              - Configures the USART2 pins on GPIO PB6 PB7
   */
 __INLINE void Configure_GPIO_USART2(void) {
-    /* Enable the peripheral clock of GPIOA */
+    // Enable the peripheral clock of GPIOA
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    /* GPIO configuration for USART2 signals */
-    /* (1) Select AF mode (10) on PA9 and PA10 */
-    /* (2) AF1 for USART1 signals */  // TODO  change to USART2
+    // GPIO configuration for USART2 signals
+    // (1) Select AF mode (10) on PA2 and PA3
+    // (2) AF1 for USART2 signals
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER2 | GPIO_MODER_MODER3))
-                   | (GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1); /* (1) */
-    GPIOA->AFR[1] = (GPIOA->AFR[1] & ~(GPIO_AFRH_AFRH1 | GPIO_AFRH_AFRH2))
-                    | (1 << (1 * 4)) | (1 << (2 * 4)); /* (2) */
+                   | (GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1); // (1)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3))
+                    | (1 << (2 * 4)) | (1 << (3 * 4)); // (2)
 }
 
 /**
@@ -190,7 +190,7 @@ void USART2_IRQHandler(void) {
         if (stringtosend[send] == 0) {
             send = 0;
             USART2->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
-            GPIOC->ODR ^= GPIO_ODR_9; /* Toggle Green LED */
+//            GPIOC->ODR ^= GPIO_ODR_9; /* Toggle Green LED */
         } else {
             /* clear transfer complete flag and fill TDR with a new char */
             USART2->TDR = stringtosend[send++];
