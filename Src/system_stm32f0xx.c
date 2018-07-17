@@ -96,7 +96,7 @@
 /** @addtogroup STM32F0xx_System_Private_Defines
   * @{
   */
-#if !defined  (HSE_VALUE) 
+#if !defined  (HSE_VALUE)
   #define HSE_VALUE    ((uint32_t)8000000) /*!< Default value of the External oscillator in Hz.
                                                 This value can be provided and adapted by the user application. */
 #endif /* HSE_VALUE */
@@ -135,13 +135,13 @@
       2) by calling HAL API function HAL_RCC_GetHCLKFreq()
       3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
          Note: If you use this function to configure the system clock there is no need to
-               call the 2 first functions listed above, since SystemCoreClock variable is 
+               call the 2 first functions listed above, since SystemCoreClock variable is
                updated automatically.
   */
-uint32_t SystemCoreClock = 48000000; // TODO  48 ?
+uint32_t SystemCoreClock = 48000000;
 
 const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-//const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4}; // TODO  remove ?
+//const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4};
 
 /**
   * @}
@@ -151,7 +151,52 @@ const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 
   * @{
   */
 
-static void SetSysClock(void);
+//static void SetSysClock(void);
+
+#define UNUSED(x) ((void)(x))
+#define __HAL_RCC_GET_SYSCLK_SOURCE() ((uint32_t)(READ_BIT(RCC->CFGR,RCC_CFGR_SWS)))
+
+uint16_t setHSI48() {
+// #define __HAL_RCC_SYSCFG_CLK_ENABLE()
+    do {
+        __IO uint32_t tmpreg;
+        SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+        // Delay after an RCC peripheral clock enabling
+        tmpreg = READ_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+        UNUSED(tmpreg);
+    } while (0U);
+
+//#define __HAL_RCC_PWR_CLK_ENABLE()
+    do {
+        __IO uint32_t tmpreg;
+        SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+        // Delay after an RCC peripheral clock enabling
+        tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+        UNUSED(tmpreg);
+    } while (0U);
+//#define __HAL_REMAP_PIN_ENABLE(__PIN_REMAP__)
+//    do {
+//        SYSCFG->CFGR1 |= (__PIN_REMAP__);
+//    } while (0);
+//#define __HAL_RCC_HSI48_ENABLE()
+    SET_BIT(RCC->CR2, RCC_CR2_HSI48ON);
+    uint32_t timeout = 1000;
+    while(timeout--);
+
+//#define __HAL_FLASH_SET_LATENCY(__LATENCY__)
+//   (FLASH->ACR = (FLASH->ACR&(~FLASH_ACR_LATENCY)) | (__LATENCY__))   // 1
+//#define __HAL_RCC_SYSCLK_CONFIG(__SYSCLKSOURCE__)
+    MODIFY_REG(RCC->CFGR, RCC_CFGR_SW, (3u)); // 3
+    timeout = 1000;
+    while (__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_CFGR_SWS_HSI48) {
+        if (--timeout==0) {
+            return 1;
+        }
+    }
+
+    MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE, RCC_CFGR_PPRE_DIV1);
+    return 0;
+}
 
 /**
   * @}
@@ -180,7 +225,7 @@ void SystemInit(void)
   /* Reset SW[1:0], HPRE[3:0], PPRE[2:0], ADCPRE, MCOSEL[2:0], MCOPRE[2:0] and PLLNODIV bits */
   RCC->CFGR &= (uint32_t)0x08FFB80CU;
 #endif /* STM32F051x8 or STM32F058x8 */
-  
+
   /* Reset HSEON, CSSON and PLLON bits */
   RCC->CR &= (uint32_t)0xFEF6FFFFU;
 
@@ -215,7 +260,7 @@ void SystemInit(void)
   /* Reset USART1SW[1:0], I2C1SW, USBSW and ADCSW bits */
   RCC->CFGR3 &= (uint32_t)0xFFFFFE6CU;
   /* Set default USB clock to PLLCLK, since there is no HSI48 */
-  RCC->CFGR3 |= (uint32_t)0x00000080U;  
+  RCC->CFGR3 |= (uint32_t)0x00000080U;
 #else
  #warning "No target selected"
 #endif
@@ -226,9 +271,8 @@ void SystemInit(void)
   /* Disable all interrupts */
   RCC->CIR = 0x00000000U;
 
-	/* Configure the System clock frequency, AHB/APBx prescalers and Flash settings */
-  SetSysClock();
-
+  /* Configure the System clock frequency, AHB/APBx prescalers and Flash settings */
+  setHSI48();
 }
 
 /**
@@ -326,64 +370,3 @@ void SystemCoreClockUpdate (void)
   /* HCLK clock frequency */
   SystemCoreClock >>= tmp;
 }
-
-
-/**
-  * @brief  Configures the System clock frequency, AHB/APBx prescalers and Flash
-  *         settings.
-  * @note   This function should be called only once the RCC clock configuration
-  *         is reset to the default reset state (done in SystemInit() function).
-  * @param  None
-  * @retval None
-  */
-static void SetSysClock(void)
-{
-  /* SYSCLK, HCLK, PCLK configuration ----------------------------------------*/
-
-  /* At this stage the HSI is already enabled */
-
-  /* Enable Prefetch Buffer and set Flash Latency */
-  FLASH->ACR = FLASH_ACR_PRFTBE | FLASH_ACR_LATENCY;
-
-  /* HCLK = SYSCLK */
-  RCC->CFGR |= (uint32_t)RCC_CFGR_HPRE_DIV1;
-
-  /* PCLK = HCLK */
-  RCC->CFGR |= (uint32_t)RCC_CFGR_PPRE_DIV1;
-
-  /* PLL configuration = (HSI/2) * 12 = ~48 MHz */
-  RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL));
-  RCC->CFGR |= (uint32_t)(RCC_CFGR_PLLSRC_HSI_DIV2 | RCC_CFGR_PLLMUL12);
-
-  /* Enable PLL */
-  RCC->CR |= RCC_CR_PLLON;
-
-  /* Wait till PLL is ready */
-  while((RCC->CR & RCC_CR_PLLRDY) == 0)
-  {
-  }
-
-  /* Select PLL as system clock source */
-  RCC->CFGR &= (uint32_t)((uint32_t)~(RCC_CFGR_SW));
-  RCC->CFGR |= (uint32_t)RCC_CFGR_SW_PLL;
-
-  /* Wait till PLL is used as system clock source */
-  while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != (uint32_t)RCC_CFGR_SWS_PLL)
-  {
-  }
-}
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
-

@@ -39,8 +39,7 @@ int main(void) {
 
         if(++sendCount>5) {
             sendCount=0;
-            // start USART transmission
-            // Will initiate TC if TXE
+            // start USART transmission. Will initiate TC if TXE
             USART2->TDR = stringtosend[send++];
         }
 
@@ -102,9 +101,9 @@ __INLINE void Configure_USART2(void) {
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
     /* Configure USART2 */
-    /* (1) oversampling by 16, 9600 baud */
+    /* (1) oversampling by 16, 115200 baud */
     /* (2) 8 data bit, 1 start bit, 1 stop bit, no parity */
-    USART2->BRR = 480000 / 96; /* (1) */
+    USART2->BRR = 480000 / 1152; /* (1) */
     USART2->CR1 = USART_CR1_TE | USART_CR1_UE; /* (2) */
 
     /* polling idle frame Transmission */
