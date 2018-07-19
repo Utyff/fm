@@ -57,6 +57,8 @@ void Configure_I2C1_Slave() {
 void Configure_I2C1_Master() {
     // Enable the peripheral clock I2C2
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
+    // Use SysClk for I2C CLK
+    RCC->CFGR3 |= RCC_CFGR3_I2C1SW;
 
     // Configure I2C2, master
     // (1) Timing register value is computed with the AN4235 xls file,
@@ -66,4 +68,77 @@ void Configure_I2C1_Master() {
     I2C1->TIMINGR = (uint32_t) 0x00B01A4B; // (1)
     I2C1->CR1 = I2C_CR1_PE; // (2)
     I2C1->CR2 = I2C_CR2_AUTOEND | (1 << 16) | (I2C1_OWN_ADDRESS << 1); // (3)
+}
+
+// https://github.com/eddyem/stm32samples/blob/master/F0-nolib/htu21d_nucleo/i2c.c
+extern uint32_t stick;
+#define I2C_ADDR 0x11
+uint32_t cntr;
+
+void i2c_send(uint8_t data) {
+    // start I2C master transmission sequence
+    if ((I2C1->ISR & I2C_ISR_TXE) == (I2C_ISR_TXE)) // Check Tx empty
+    {
+        I2C1->TXDR = data; // Byte to send
+        I2C1->CR2 |= I2C_CR2_START; // Go
+    }
+
+    cntr = stick;
+    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return;  // check busy
+    cntr = stick;
+    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return; // check start
+    I2C1->CR2 = 1 << 16 | I2C_ADDR | I2C_CR2_AUTOEND;  // 1 byte, autoend
+    // now start transfer
+    I2C1->CR2 |= I2C_CR2_START;
+    cntr = stick;
+    while (!(I2C1->ISR & I2C_ISR_TXIS)) { // ready to transmit
+        if (I2C1->ISR & I2C_ISR_NACKF) {
+            I2C1->ICR |= I2C_ICR_NACKCF;
+            return;
+        }
+        if (stick - cntr > 5) return;
+    }
+    I2C1->TXDR = data; // send data
+}
+
+void i2c_receive() {
+    uint32_t I2C_InterruptStatus = I2C1->ISR; /* Get interrupt status */
+
+    if ((I2C_InterruptStatus & I2C_ISR_ADDR) == I2C_ISR_ADDR) {
+        I2C1->ICR |= I2C_ICR_ADDRCF; /* Address match event */
+    } else if ((I2C_InterruptStatus & I2C_ISR_RXNE) == I2C_ISR_RXNE) {
+        /* Read receive register, will clear RXNE flag */
+        if (I2C1->RXDR == 0x1) {
+            GPIOC->ODR ^= GPIO_ODR_9; /* toggle green LED */
+        }
+    } else {
+        GPIOC->BSRR = GPIO_BSRR_BS_8; /* Lit orange LED */
+        NVIC_DisableIRQ(I2C1_IRQn); /* Disable I2C1_IRQn */
+    }
+}
+
+uint8_t i2c_read(uint16_t *data) {
+    uint8_t buf[3];
+    cntr = stick;
+    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
+    cntr = stick;
+    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return 0; // check start
+    // read three bytes
+    I2C1->CR2 = 3 << 16 | I2C_ADDR | 1 | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
+    I2C1->CR2 |= I2C_CR2_START;
+    int i;
+    cntr = stick;
+    for (i = 0; i < 3; ++i) {
+        while (!(I2C1->ISR & I2C_ISR_RXNE)) { // wait for data
+            if (I2C1->ISR & I2C_ISR_NACKF) {
+                I2C1->ICR |= I2C_ICR_NACKCF;
+                return 0;
+            }
+            if (stick - cntr > 5) return 0;
+        }
+        buf[i] = I2C1->RXDR;
+    }
+    *data = (buf[0] << 8) | buf[1];
+
+    return 1;
 }
