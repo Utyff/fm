@@ -1,15 +1,11 @@
-#include "stm32f0xx.h"
 #include "i2c.h"
-
 
 #define I2C1_OWN_ADDRESS (0x5A)
 
 /**
-  * @brief  This function :
-             - Enables GPIO clock
-             - Configures the I2C1 pins on GPIO PB6 PB7
+  * Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
   */
-void Configure_GPIO_I2C1() {
+void i2cm_init(I2C_TypeDef *I2Cx, uint32_t i2c_clock) {
     // Enable the peripheral clock of GPIOF
     RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
 
@@ -21,40 +17,7 @@ void Configure_GPIO_I2C1() {
                     | (1 << (0 * 4)) | (1 << (1 * 4)); // (2)
     GPIOF->MODER = (GPIOF->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER1))
                    | (GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1); // (3)
-}
 
-/**
-  * @brief  This function configures I2C1, master.
-  */
-void Configure_I2C1_Slave() {
-    // Configure RCC for I2C1
-    // (1) Enable the peripheral clock I2C1
-    // (2) Use SysClk for I2C CLK
-    RCC->APB1ENR |= RCC_APB1ENR_I2C1EN; // (1)
-    RCC->CFGR3 |= RCC_CFGR3_I2C1SW; // (2)
-
-    // Configure I2C1, slave
-    // (2) Timing register value is computed with the AN4235 xls file,
-    // fast Mode @400kHz with I2CCLK = 48MHz, rise time = 140ns, fall time = 40ns
-    // (3) Periph enable, receive interrupt enable
-    // (4) 7-bit address = 0x5A
-    // (5) Enable own address 1
-    I2C1->TIMINGR = (uint32_t) 0x00B00000; // (2)
-    I2C1->CR1 = I2C_CR1_PE | I2C_CR1_RXIE | I2C_CR1_ADDRIE; // (3)
-    I2C1->OAR1 |= (uint32_t) (I2C1_OWN_ADDRESS << 1); // (4)
-    I2C1->OAR1 |= I2C_OAR1_OA1EN; // (5)
-
-    // Configure IT
-    // (7) Set priority for I2C1_IRQn
-    // (8) Enable I2C1_IRQn
-    NVIC_SetPriority(I2C1_IRQn, 0); // (7)
-    NVIC_EnableIRQ(I2C1_IRQn); // (8)
-}
-
-/**
-  * @brief  This function configures I2C2, master.
-  */
-void Configure_I2C1_Master() {
     // Enable the peripheral clock I2C2
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
     // Use SysClk for I2C CLK
@@ -65,80 +28,133 @@ void Configure_I2C1_Master() {
     // fast Mode @400kHz with I2CCLK = 48MHz, rise time = 140ns, fall time = 40ns
     // (2) Periph enable
     // (3) Slave address = 0x5A, write transfer, 1 byte to transmit, autoend
-    I2C1->TIMINGR = (uint32_t) 0x00B01A4B; // (1)
+    I2C1->TIMINGR = (uint32_t) 0x20303E5D; // 100khz 0ms 0ms  // 0x00B01A4B; // (1)
     I2C1->CR1 = I2C_CR1_PE; // (2)
-    I2C1->CR2 = I2C_CR2_AUTOEND | (1 << 16) | (I2C1_OWN_ADDRESS << 1); // (3)
+    //I2C1->CR2 = I2C_CR2_AUTOEND | (1 << 16) | (I2C1_OWN_ADDRESS << 1); // (3)
+
+    /*/ Стартуем тактирование GPIO и I2C1
+    if (I2Cx == I2C1)
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+    else
+        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+
+    // Настраиваем I2C
+    I2C_Cmd(I2Cx, DISABLE);
+    I2C_DeInit(I2Cx);
+    I2C_InitTypeDef i2c_InitStruct;
+    i2c_InitStruct.I2C_Mode = I2C_Mode_I2C;
+    i2c_InitStruct.I2C_ClockSpeed = i2c_clock;
+    i2c_InitStruct.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
+    i2c_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;
+    i2c_InitStruct.I2C_Ack = I2C_Ack_Enable;
+    i2c_InitStruct.I2C_OwnAddress1 = 0;
+    I2C_Cmd(I2Cx, ENABLE);
+    I2C_Init(I2Cx, &i2c_InitStruct);
+
+    // Настраиваем ноги GPIO
+    GPIO_InitTypeDef InitStruct;
+    InitStruct.GPIO_Mode = GPIO_Mode_AF_OD;
+    InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+
+    if (I2Cx == I2C1)
+        InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    else
+        InitStruct.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+
+    GPIO_Init(GPIOB, &InitStruct); //*/
 }
 
-// https://github.com/eddyem/stm32samples/blob/master/F0-nolib/htu21d_nucleo/i2c.c
-extern uint32_t stick;
-#define I2C_ADDR 0x11
-uint32_t cntr;
 
-void i2c_send(uint8_t data) {
-    // start I2C master transmission sequence
-    if ((I2C1->ISR & I2C_ISR_TXE) == (I2C_ISR_TXE)) // Check Tx empty
-    {
-        I2C1->TXDR = data; // Byte to send
-        I2C1->CR2 |= I2C_CR2_START; // Go
-    }
+/**
+  * Функция стартует обмен. Выдаёт условие START, выдаёт адрес слейва с признаком R/W
+  */
+int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut) {
+    uint16_t TOcntr;
 
-    cntr = stick;
-    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return;  // check busy
-    cntr = stick;
-    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return; // check start
-    I2C1->CR2 = 1 << 16 | I2C_ADDR | I2C_CR2_AUTOEND;  // 1 byte, autoend
-    // now start transfer
-    I2C1->CR2 |= I2C_CR2_START;
-    cntr = stick;
-    while (!(I2C1->ISR & I2C_ISR_TXIS)) { // ready to transmit
-        if (I2C1->ISR & I2C_ISR_NACKF) {
-            I2C1->ICR |= I2C_ICR_NACKCF;
-            return;
-        }
-        if (stick - cntr > 5) return;
-    }
-    I2C1->TXDR = data; // send data
-}
+    /*/ Выдаём условие START
+    I2C_GenerateSTART(I2Cx, ENABLE);
+    TOcntr = TimeOut;
+    while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT)) && TOcntr) { TOcntr--; }
+    if (!TOcntr)
+        return I2C_ERR_HWerr;
 
-void i2c_receive() {
-    uint32_t I2C_InterruptStatus = I2C1->ISR; /* Get interrupt status */
-
-    if ((I2C_InterruptStatus & I2C_ISR_ADDR) == I2C_ISR_ADDR) {
-        I2C1->ICR |= I2C_ICR_ADDRCF; /* Address match event */
-    } else if ((I2C_InterruptStatus & I2C_ISR_RXNE) == I2C_ISR_RXNE) {
-        /* Read receive register, will clear RXNE flag */
-        if (I2C1->RXDR == 0x1) {
-            GPIOC->ODR ^= GPIO_ODR_9; /* toggle green LED */
-        }
+    // Выдаём адрес слейва и ожидаем окончания выдачи
+    if (IsRead) {
+        I2C_Send7bitAddress(I2Cx, slave_addr << 1, I2C_Direction_Receiver);
+        TOcntr = TimeOut;
+        while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED)) && TOcntr) { TOcntr--; }
     } else {
-        GPIOC->BSRR = GPIO_BSRR_BS_8; /* Lit orange LED */
-        NVIC_DisableIRQ(I2C1_IRQn); /* Disable I2C1_IRQn */
+        I2C_Send7bitAddress(I2Cx, slave_addr << 1, I2C_Direction_Transmitter);
+        TOcntr = TimeOut;
+        while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED)) && TOcntr) { TOcntr--; }
     }
+
+    if (!TOcntr)
+        return I2C_ERR_NotConnect;
+//*/
+    return I2C_Ok;
 }
 
-uint8_t i2c_read(uint16_t *data) {
-    uint8_t buf[3];
-    cntr = stick;
-    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
-    cntr = stick;
-    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return 0; // check start
-    // read three bytes
-    I2C1->CR2 = 3 << 16 | I2C_ADDR | 1 | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
-    I2C1->CR2 |= I2C_CR2_START;
-    int i;
-    cntr = stick;
-    for (i = 0; i < 3; ++i) {
-        while (!(I2C1->ISR & I2C_ISR_RXNE)) { // wait for data
-            if (I2C1->ISR & I2C_ISR_NACKF) {
-                I2C1->ICR |= I2C_ICR_NACKCF;
-                return 0;
-            }
-            if (stick - cntr > 5) return 0;
-        }
-        buf[i] = I2C1->RXDR;
-    }
-    *data = (buf[0] << 8) | buf[1];
 
-    return 1;
+/**
+  * Функция выдаёт условие STOP
+  */
+int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut) {
+/*    I2C_GenerateSTOP(I2Cx, ENABLE);
+    uint16_t TOcntr = TimeOut;
+    while (I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF) && TOcntr);
+    if (!TOcntr)
+        return I2C_ERR_HWerr;
+//*/
+    return I2C_Ok;
+}
+//==============================================================================
+
+
+/**
+  * Функция выдаёт на шину массив байт из буфера
+  */
+int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
+/*    uint16_t TOcntr;
+
+    while (len--) {
+        I2C_SendData(I2Cx, *(pbuf++));
+        TOcntr = TimeOut;
+        while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_TRANSMITTED)) && TOcntr) { TOcntr--; }
+        if (!TOcntr)
+            return I2C_ERR_NotConnect;
+    }
+//*/
+    return I2C_Ok;
+}
+//==============================================================================
+
+
+/**
+  * Функция читает массив байт с шины и выдаёт условие STOP
+  */
+int8_t i2cm_ReadBuffAndStop(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
+/*    uint16_t TOcntr;
+
+    // Разрешаем выдачу подтверждений ACK
+    I2C_AcknowledgeConfig(I2Cx, ENABLE);
+
+    while (len-- != 1) {
+        TOcntr = TimeOut;
+        while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED)) && TOcntr) { TOcntr--; }
+        *pbuf++ = I2C_ReceiveData(I2Cx);
+    }
+
+    // Запрещаем выдачу ACK
+    I2C_AcknowledgeConfig(I2Cx, DISABLE);
+    I2C_GenerateSTOP(I2Cx, ENABLE);               // Выдаём STOP
+
+    TOcntr = TimeOut;
+    while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_BYTE_RECEIVED)) && TOcntr) { TOcntr--; }
+    *pbuf++ = I2C_ReceiveData(I2Cx);             // Читаем N-2 байт
+
+    i2cm_Stop(I2Cx, TimeOut);
+//*/
+    return I2C_Ok;
 }
