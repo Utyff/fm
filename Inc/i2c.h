@@ -11,14 +11,27 @@
 
 
 // Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
-void i2cm_init(I2C_TypeDef* I2Cx, uint32_t i2c_clock);
+void i2cm_init(I2C_TypeDef *I2Cx, uint32_t i2c_clock);
+
 // Функция стартует обмен. Выдаёт условие START, выдаёт адрес слейва с признаком R/W
-int8_t i2cm_Start(I2C_TypeDef* I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut);
+int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut);
+
 // Функция выдаёт условие STOP
-int8_t i2cm_Stop(I2C_TypeDef* I2Cx, uint16_t TimeOut);
+int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut);
+
 // Функция выдаёт на шину массив байт из буфера
-int8_t i2cm_WriteBuff(I2C_TypeDef* I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut);
+int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut);
+
 // Функция читает массив байт с шины и выдаёт условие STOP
-int8_t i2cm_ReadBuffAndStop(I2C_TypeDef* I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut);
+int8_t i2cm_ReadBuffAndStop(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut);
+
+uint8_t i2c_read(uint16_t i2c_addr, uint8_t count, uint8_t *data);
+
+uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data);
+
+uint8_t  i2c_mem_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data);
+
+uint8_t  i2c_mem_write(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data);
+
 
 #endif //FM_I2C_H

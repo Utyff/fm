@@ -1,3 +1,4 @@
+#include <rda5807m.h>
 #include "stm32f0xx.h"
 
 
@@ -27,8 +28,10 @@ int main(void) {
     Configure_GPIO_USART2();
     Configure_USART2();
 
+    rda5807_init();
+
     GPIOA->ODR ^= GPIO_ODR_6;
-    uint32_t sendCount=100;
+    uint32_t sendCount = 100;
 
     while (1) {
         // toggle green LED
@@ -36,9 +39,10 @@ int main(void) {
         GPIOA->ODR ^= GPIO_ODR_5;
         uint32_t count = 1000000;
         while (count--);
+        rda5807_init();
 
-        if(++sendCount>5) {
-            sendCount=0;
+        if (++sendCount > 5) {
+            sendCount = 0;
             // start USART transmission. Will initiate TC if TXE
             USART2->TDR = stringtosend[send++];
         }

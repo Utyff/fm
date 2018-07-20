@@ -75,7 +75,7 @@ int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_
 
     // Âûהא¸ל ףסכמגטו START
     // I2C_GenerateSTART(I2Cx, ENABLE);
-    I2Cx->CR2 |= I2C_CR2_START;
+/*    I2Cx->CR2 |= I2C_CR2_START;
 
     cntr = stick;
     while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
@@ -85,7 +85,7 @@ int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_
     I2C1->CR2 = 1 << 16 | slave_addr | 1 | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
     I2C1->CR2 |= I2C_CR2_START;
 
-/*
+
     TOcntr = TimeOut;
     while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT)) && TOcntr) { TOcntr--; }
     if (!TOcntr)
@@ -121,7 +121,6 @@ int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut) {
 //*/
     return I2C_Ok;
 }
-//==============================================================================
 
 
 /**
@@ -140,7 +139,6 @@ int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t T
 //*/
     return I2C_Ok;
 }
-//==============================================================================
 
 
 /**
@@ -175,7 +173,7 @@ uint32_t cntr;
 
 // HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1, RDA5807_TO);
 // return 1 if all OK, 0 if NACK
-uint8_t i2c_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
+uint8_t i2c_read(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
 
     cntr = stick;
     while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
@@ -201,7 +199,7 @@ uint8_t i2c_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *da
     return 1;
 }
 
-uint8_t htu_write_i2c(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
+uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
     cntr = stick;
     while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
     cntr = stick;
@@ -219,8 +217,18 @@ uint8_t htu_write_i2c(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_
             }
             if (stick - cntr > 5) return 0;
         }
-        I2C1->TXDR = data; // send data
+        I2C1->TXDR = (uint32_t)data; // send data
         data++;
     }
     return 1;
+}
+
+uint8_t i2c_mem_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
+    if( !i2c_write(i2c_addr, 1, &mem_addr)) return 0;
+    if( !i2c_read(i2c_addr, count, data)) return 0;
+}
+
+uint8_t i2c_mem_write(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
+    if( !i2c_write(i2c_addr, 1, &mem_addr)) return 0;
+    if( !i2c_write(i2c_addr, count, data)) return 0;
 }
