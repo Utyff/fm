@@ -1,6 +1,7 @@
 #include "i2c.h"
 
-#define I2C1_OWN_ADDRESS (0x5A)
+extern uint32_t stick;
+uint32_t cntr;
 
 /**
   * Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
@@ -72,8 +73,19 @@ void i2cm_init(I2C_TypeDef *I2Cx, uint32_t i2c_clock) {
 int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut) {
     uint16_t TOcntr;
 
-    /*/ Выдаём условие START
-    I2C_GenerateSTART(I2Cx, ENABLE);
+    // Выдаём условие START
+    // I2C_GenerateSTART(I2Cx, ENABLE);
+    I2Cx->CR2 |= I2C_CR2_START;
+
+    cntr = stick;
+    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
+    cntr = stick;
+    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return 0; // check start
+    // read three bytes
+    I2C1->CR2 = 1 << 16 | slave_addr | 1 | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
+    I2C1->CR2 |= I2C_CR2_START;
+
+/*
     TOcntr = TimeOut;
     while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT)) && TOcntr) { TOcntr--; }
     if (!TOcntr)
@@ -157,4 +169,58 @@ int8_t i2cm_ReadBuffAndStop(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint
     i2cm_Stop(I2Cx, TimeOut);
 //*/
     return I2C_Ok;
+}
+
+uint32_t cntr;
+
+// HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1, RDA5807_TO);
+// return 1 if all OK, 0 if NACK
+uint8_t i2c_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
+
+    cntr = stick;
+    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
+    cntr = stick;
+    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return 0; // check start
+    // byte to read count | i2c addr | autoend enable | read operation
+    I2C1->CR2 = count << 16 | i2c_addr | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
+    I2C1->CR2 |= I2C_CR2_START;
+
+    for (int i = 0; i < count; ++i) {
+        cntr = stick;
+        while (!(I2C1->ISR & I2C_ISR_RXNE)) { // wait for data
+            if (I2C1->ISR & I2C_ISR_NACKF) {
+                I2C1->ICR |= I2C_ICR_NACKCF;
+                return 0;
+            }
+            if (stick - cntr > 5) return 0;
+        }
+        *data = (uint8_t) I2C1->RXDR;
+        data++;
+    }
+
+    return 1;
+}
+
+uint8_t htu_write_i2c(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
+    cntr = stick;
+    while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
+    cntr = stick;
+    while (I2C1->CR2 & I2C_CR2_START) if (stick - cntr > 5) return 0; // check start
+    I2C1->CR2 = count << 16 | i2c_addr | I2C_CR2_AUTOEND;
+    // now start transfer
+    I2C1->CR2 |= I2C_CR2_START;
+
+    for (int i = 0; i < count; ++i) {
+        cntr = stick;
+        while (!(I2C1->ISR & I2C_ISR_TXIS)) { // ready to transmit
+            if (I2C1->ISR & I2C_ISR_NACKF) {
+                I2C1->ICR |= I2C_ICR_NACKCF;
+                return 0;
+            }
+            if (stick - cntr > 5) return 0;
+        }
+        I2C1->TXDR = data; // send data
+        data++;
+    }
+    return 1;
 }
