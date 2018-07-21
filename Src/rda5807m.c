@@ -12,13 +12,13 @@ void rda5807_init() {
     i2cm_init();
     uint8_t err = i2c_mem_read(RDA5807_RandAccess_Addr << 1u, 0, 2, buf);
 
-    /*    HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
+    /*    HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
     printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
 
     if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
         Error_Handler();
     }
-    err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
+    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
     printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
 
     if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
@@ -30,11 +30,11 @@ void rda5807_init() {
         buf11[i] = 0;
     }
 
-    err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf11, 64);
+    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf11, 64);
     if (err != HAL_OK) {
         Error_Handler();
     }
-    err = HAL_I2C_Master_Receive(I2Cx, RDA5807_SeqAccess_Addr << 1u, buf10, 64);
+    err = HAL_I2C_Master_Receive(I2C1, RDA5807_SeqAccess_Addr << 1u, buf10, 64);
     if (err != HAL_OK) {
         Error_Handler();
     }
@@ -48,12 +48,12 @@ void rda5807_init() {
 //    rda5807_SoftReset();
 //    rda5807_SetupDefault();
 
-//    printf("start freq: %u \n\r", rda5807_GetFreq_In100Khz(I2Cx));
+//    printf("start freq: %u \n\r", rda5807_GetFreq_In100Khz());
 //    rda5807_StartSeek(1);
-/*    while (rda5807_Get_SeekTuneReadyFlag(I2Cx))
+/*    while (rda5807_Get_SeekTuneReadyFlag())
         printf(".");
     printf(" ---\n\r");
-    printf("tuned freq: %u \n\r", rda5807_GetFreq_In100Khz(I2Cx));//*/
+    printf("tuned freq: %u \n\r", rda5807_GetFreq_In100Khz());//*/
 }
 
 void rda5807_bus_init() {
