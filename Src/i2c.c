@@ -216,7 +216,7 @@ uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
             }
             if (stick - cntr > 5) return 0;
         }
-        I2C1->TXDR = (uint32_t)data; // send data
+        I2C1->TXDR = (uint32_t)(*data); // send data
         data++;
     }
     return 1;

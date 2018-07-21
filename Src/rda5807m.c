@@ -1,4 +1,5 @@
 #include "rda5807m.h"
+#include "main.h"
 
 uint8_t buf10[64];
 uint8_t buf11[64];
@@ -12,13 +13,18 @@ void rda5807_init() {
     i2cm_init();
     uint8_t err = i2c_mem_read(RDA5807_RandAccess_Addr << 1u, 0, 2, buf);
 
-    /*    HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
-    printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
+    //HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
+    prints("\n\r -- init err: ");
+    printi(err);
+    prints(" | id: ");
+    printi(buf[0]);
+    printi(buf[1]);
+    prints("\n\r");
 
-    if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
+    if (err == 0 || buf[0] != 0x58 || buf[1] != 4) {
         Error_Handler();
     }
-    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
+/*    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
     printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
 
     if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
@@ -45,15 +51,20 @@ void rda5807_init() {
     for (i = 0; i < 64; i++) { printf(" %02x", buf11[i]); }
     printf("\n\r");
 */
-//    rda5807_SoftReset();
-//    rda5807_SetupDefault();
+    rda5807_SoftReset();
+    rda5807_SetupDefault();
 
+    uint32_t ii = 10000000;
+    while (ii--);
 //    printf("start freq: %u \n\r", rda5807_GetFreq_In100Khz());
-//    rda5807_StartSeek(1);
+    rda5807_StartSeek(1);
+
 /*    while (rda5807_Get_SeekTuneReadyFlag())
         printf(".");
     printf(" ---\n\r");
     printf("tuned freq: %u \n\r", rda5807_GetFreq_In100Khz());//*/
+//    prints("\n\rtuned freq: ");
+//    printi(rda5807_GetFreq_In100Khz());
 }
 
 void rda5807_bus_init() {
@@ -81,9 +92,7 @@ void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count) {
 void rda5807_read_regfile(uint16_t *pBuff, uint8_t RegNum) {
     // Выдаём START на шину
     if (i2cm_Start(RDA5807_SeqAccess_Addr, 1)) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
+        Error_Handler();
     }
 
     // Читаем
@@ -96,20 +105,22 @@ void rda5807_read_regfile(uint16_t *pBuff, uint8_t RegNum) {
   * Используется I2C-адрес RDA5807_SeqAccess_Addr
   */
 void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum) {
-    int8_t err;
+//    int8_t err;
 
-    // Выдаём START на шину
-    err = i2cm_Start(RDA5807_SeqAccess_Addr, 0);
+    /*/ Выдаём START на шину
+    err = i2cm_Start(I2Cx, RDA5807_SeqAccess_Addr, 0, RDA5807_TO);
     if (err) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
-    }
+        Error_Handler();
+    } //*/
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 
-    err = i2cm_WriteBuff((uint8_t *) pBuff, RegNum << 1);
-    i2cm_Stop();
+//    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+//    i2cm_Stop(I2Cx, RDA5807_TO);
+
+    if (!i2c_write(RDA5807_SeqAccess_Addr << 1u, RegNum << 1, (uint8_t *) pBuff)) {
+        Error_Handler();
+    }
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
@@ -119,28 +130,25 @@ void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum) {
   * Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
   */
 void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
-    // Выдаём START на шину
-    if (i2cm_Start(RDA5807_RandAccess_Addr, 0)) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
+    /*/ Выдаём START на шину
+    if (i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 0, RDA5807_TO)) {
+        Error_Handler();
     }
-
-    if (i2cm_WriteBuff(&RegAddr, 1)) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
+    if (i2cm_WriteBuff(I2Cx, &RegAddr, 1, RDA5807_TO)) {
+        Error_Handler();
     }
 
     // Выдаём START на шину
-    if (i2cm_Start(RDA5807_RandAccess_Addr, 1)) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
+    if (i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 1, RDA5807_TO)) {
+        Error_Handler();
     }
-
     // Читаем
-    i2cm_ReadBuffAndStop((uint8_t *) pBuff, RegNum << 1);
+    i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO); //*/
+
+    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1, (uint8_t *) pBuff)) {
+        Error_Handler();
+    }
+
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
 
@@ -149,26 +157,26 @@ void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
   * Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
   */
 void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
-    int8_t err;
+    //int8_t err;
 
-    // Выдаём START на шину
-    err = i2cm_Start(RDA5807_RandAccess_Addr, 0);
+    /*/ Выдаём START на шину
+    err = i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 0, RDA5807_TO);
     if (err) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
+        Error_Handler();
     }
 
-    if (i2cm_WriteBuff(&RegAddr, 1)) {
-        i2cm_Stop();
-        rda5807_bus_init();
-        return;
-    }
+    if (i2cm_WriteBuff(I2Cx, &RegAddr, 1, RDA5807_TO)) {
+        Error_Handler();
+    } //*/
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 
-    err = i2cm_WriteBuff((uint8_t *) pBuff, RegNum << 1);
-    i2cm_Stop();
+    //err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
+    //i2cm_Stop(I2Cx, RDA5807_TO);
+
+    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1, (uint8_t *) pBuff)) {
+        Error_Handler();
+    }
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
 }
@@ -251,7 +259,7 @@ void rda5807_SetupDefault() {
     Buff.Reg07.bRSVD2 = 0;
 
     // Пишем регистры функцией записи регистрового файла
-    rda5807_write_regfile((uint16_t *) &(Buff.Reg02), 6);
+    rda5807_write_regfile((uint16_t *) &(Buff.Reg02), 7);
 }
 
 /**

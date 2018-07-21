@@ -1,5 +1,6 @@
-#include <rda5807m.h>
 #include "stm32f0xx.h"
+#include <rda5807m.h>
+#include "main.h"
 
 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
@@ -17,7 +18,7 @@ void Configure_USART2(void);
 
 
 uint8_t send = 0;
-const uint8_t stringtosend[32] = "STm\n";
+uint8_t stringtosend[32] = "STm\n";
 
 int main(void) {
 
@@ -37,16 +38,19 @@ int main(void) {
         // toggle green LED
         GPIOA->ODR ^= GPIO_ODR_6;
         GPIOA->ODR ^= GPIO_ODR_5;
+
         uint32_t count = 1000000;
         while (count--);
-        rda5807_init();
 
-        if (++sendCount > 5) {
-            sendCount = 0;
-            // start USART transmission. Will initiate TC if TXE
-            USART2->TDR = stringtosend[send++];
-        }
+//        rda5807_init();
+        prints("\n\rtuned freq: ");
+        printi(rda5807_GetFreq_In100Khz());
 
+//        if (++sendCount > 5) {
+//            printi(0x1f);
+//            prints(" STM\n\r");
+//            sendCount = 0;
+//        }
     }
 }
 
@@ -179,27 +183,65 @@ void EXTI0_1_IRQHandler(void) {
 }
 
 /**
-  * @brief  This function handles I2C1 interrupt request.
-  */
-void I2C1_IRQHandler(void) {
-}
-
-/**
   * @brief  This function handles USART2 interrupt request.
   */
 void USART2_IRQHandler(void) {
     if ((USART2->ISR & USART_ISR_TC) == USART_ISR_TC) {
-//        if(send == sizeof(stringtosend))
         if (stringtosend[send] == 0) {
             send = 0;
-            USART2->ICR |= USART_ICR_TCCF; /* Clear transfer complete flag */
-//            GPIOC->ODR ^= GPIO_ODR_9; /* Toggle Green LED */
+            USART2->ICR |= USART_ICR_TCCF; // Clear transfer complete flag
         } else {
-            /* clear transfer complete flag and fill TDR with a new char */
+            // clear transfer complete flag and fill TDR with a new char
             USART2->TDR = stringtosend[send++];
         }
     } else {
-        NVIC_DisableIRQ(USART2_IRQn); /* Disable USART2_IRQn */
+        NVIC_DisableIRQ(USART2_IRQn); // Disable USART2_IRQn
     }
+}
 
+void _strcpy(uint8_t *dst, const uint8_t *src) {
+    int i = 0;
+    do {
+        dst[i] = src[i];
+    } while (src[i++] != 0);
+}
+
+#define hex2char(hex) (uint8_t)((hex)<=9 ? (hex) +'0' : (hex) + 'a' - 10)
+//uint8_t hex2char(uint8_t hex) {
+//    uint8_t res = 0, u1, u2;
+//    u1 = hex + '0';
+//    u2 = hex + 'a' - 10;
+//    res = hex <= 9 ? u1 : u2;
+//    return res;
+//}
+
+void printi(uint16_t val) {
+    uint8_t buf[5];
+
+    buf[0] = hex2char(val >> 12 & 0xFu);
+    buf[1] = hex2char(val >> 8 & 0xFu);
+    buf[2] = hex2char(val >> 4 & 0xFu);
+    buf[3] = hex2char(val & 0xFu);
+    buf[4] = 0;
+
+    prints((char *) buf);
+}
+
+void prints(const char *str) {
+    // wait till end current transmission
+    while (send != 0);
+
+    _strcpy(stringtosend, (uint8_t *) str);
+    // start USART transmission. Will initiate TC if TXE
+    USART2->TDR = stringtosend[send++];
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  file: The file name as string.
+  * @param  line: The line in file as a number.
+  */
+void _Error_Handler(char *file, int line) {
+    while (1) {
+    }
 }
