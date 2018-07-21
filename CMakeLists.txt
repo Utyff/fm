@@ -35,7 +35,7 @@ set(CMAKE_CXX_STANDARD 11)
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1 )
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DUSE_HAL_DRIVER -DSTM32F042x6 )
 
-file(GLOB_RECURSE SOURCES "USB_DEVICE/*.*" "Middlewares/*.*" "startup/*.*" "Drivers/*.*" "Src/*.*" "Inc/*.*")
+file(GLOB_RECURSE SOURCES "startup/*.*" "Drivers/*.*" "Src/*.*" "Inc/*.*")
 
 include_directories(Inc Drivers/STM32F0xx_HAL_Driver/Inc Drivers/STM32F0xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F0xx/Include Drivers/CMSIS/Include)
 
