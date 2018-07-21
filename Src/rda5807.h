@@ -167,7 +167,7 @@ void rda5807_write(I2C_HandleTypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, ui
 
 // Процедура инициализации обмена с rda5807
 void rda5807_init(I2C_HandleTypeDef *I2Cx);
-
+void rda5807_init2(I2C_HandleTypeDef *I2Cx);
 // Процедура делает программный сброс rda5807
 void rda5807_SoftReset(I2C_HandleTypeDef *I2Cx);
 
