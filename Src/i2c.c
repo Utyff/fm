@@ -6,7 +6,7 @@ uint32_t cntr;
 /**
   * Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
   */
-void i2cm_init(I2C_TypeDef *I2Cx, uint32_t i2c_clock) {
+void i2cm_init() {
     // Enable the peripheral clock of GPIOF
     RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
 
@@ -70,7 +70,7 @@ void i2cm_init(I2C_TypeDef *I2Cx, uint32_t i2c_clock) {
 /**
   * Функция стартует обмен. Выдаёт условие START, выдаёт адрес слейва с признаком R/W
   */
-int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_t TimeOut) {
+int8_t i2cm_Start(uint8_t slave_addr, uint8_t IsRead) {
     uint16_t TOcntr;
 
     // Выдаём условие START
@@ -84,7 +84,6 @@ int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_
     // read three bytes
     I2C1->CR2 = 1 << 16 | slave_addr | 1 | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN;
     I2C1->CR2 |= I2C_CR2_START;
-
 
     TOcntr = TimeOut;
     while ((!I2C_CheckEvent(I2Cx, I2C_EVENT_MASTER_MODE_SELECT)) && TOcntr) { TOcntr--; }
@@ -112,7 +111,7 @@ int8_t i2cm_Start(I2C_TypeDef *I2Cx, uint8_t slave_addr, uint8_t IsRead, uint16_
 /**
   * Функция выдаёт условие STOP
   */
-int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut) {
+int8_t i2cm_Stop() {
 /*    I2C_GenerateSTOP(I2Cx, ENABLE);
     uint16_t TOcntr = TimeOut;
     while (I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF) && TOcntr);
@@ -126,7 +125,7 @@ int8_t i2cm_Stop(I2C_TypeDef *I2Cx, uint16_t TimeOut) {
 /**
   * Функция выдаёт на шину массив байт из буфера
   */
-int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
+int8_t i2cm_WriteBuff(uint8_t *pbuf, uint16_t len) {
 /*    uint16_t TOcntr;
 
     while (len--) {
@@ -144,7 +143,7 @@ int8_t i2cm_WriteBuff(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t T
 /**
   * Функция читает массив байт с шины и выдаёт условие STOP
   */
-int8_t i2cm_ReadBuffAndStop(I2C_TypeDef *I2Cx, uint8_t *pbuf, uint16_t len, uint16_t TimeOut) {
+int8_t i2cm_ReadBuffAndStop(uint8_t *pbuf, uint16_t len) {
 /*    uint16_t TOcntr;
 
     // Разрешаем выдачу подтверждений ACK

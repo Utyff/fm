@@ -152,47 +152,47 @@ void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count);
 
 // Процедура читает из rda5807 группу регистров (кол-во RegNum) начиная с 0x0A
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
-void rda5807_read_regfile(I2C_TypeDef *I2Cx, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_read_regfile(uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура пишет в rda5807 группу регистров (кол-во RegNum) начиная с 0x02
 // Используется I2C-адрес RDA5807_SeqAccess_Addr
-void rda5807_write_regfile(I2C_TypeDef *I2cHandle, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура читает из rda5807 группу регистров (кол-во RegNum) начиная с RegAddr
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
-void rda5807_read(I2C_TypeDef *I2cHandle, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура пишет в rda5807 группу регистров (кол-во RegNum) начиная с RegAddr
 // Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
-void rda5807_write(I2C_TypeDef *I2Cx, uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
+void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum);
 
 // Процедура инициализации обмена с rda5807
 void rda5807_init();
 
 // Процедура делает программный сброс rda5807
-void rda5807_SoftReset(I2C_TypeDef *I2Cx);
+void rda5807_SoftReset();
 
 // Процедура производит начальную настройку rda5807
-void rda5807_SetupDefault(I2C_TypeDef *I2Cx);
+void rda5807_SetupDefault();
 
 // Процедура устанавливает уровень громкости (0..16) выхода rda5807. При Value=0 включает MUTE
-void rda5807_SetVolume(I2C_TypeDef *I2Cx, uint8_t Value);
+void rda5807_SetVolume(uint8_t Value);
 
 // Процедура включает/выключает BassBoost
-void rda5807_SetBassBoost(I2C_TypeDef *I2Cx, uint8_t Value);
+void rda5807_SetBassBoost(uint8_t Value);
 
 // Процедура устанавливает текущую частоту Freq100kHz и стартует перенастройку rda5807 на эту частоту.
 // Окончание процесса можно установки можно проконтроллировать по обнулению бита STR в регистре 0x0A (функцией rda5807_Get_SeekTuneReadyFlag)
-void rda5807_SetFreq_In100Khz(I2C_TypeDef *I2Cx, uint16_t Freq100kHz);
+void rda5807_SetFreq_In100Khz(uint16_t Freq100kHz);
 
 // Функция читает текущую частоту, на которую настроен rda5807
-uint16_t rda5807_GetFreq_In100Khz(I2C_TypeDef *I2Cx);
+uint16_t rda5807_GetFreq_In100Khz();
 
 // Процедура стартует поиск радиостанции вверх/вниз
-void rda5807_StartSeek(I2C_TypeDef *I2Cx, uint8_t Up);
+void rda5807_StartSeek(uint8_t Up);
 
 // Функция возвращает состояние бита STR (SeekTuneReadyFlag)
 // SeekTuneReadyFlag=1 пока идёт процесс настройки на частоту или поиск радиостанции.
-uint8_t rda5807_Get_SeekTuneReadyFlag(I2C_TypeDef *I2Cx);
+uint8_t rda5807_Get_SeekTuneReadyFlag();
 
 #endif
