@@ -75,8 +75,7 @@ void rda5807_bus_init() {
   * Процедура меняет местами байты попарно в буфере pBuff
   */
 void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count) {
-    while (Count > 1)     // Если осталась хотя бы пара байт
-    {
+    while (Count > 1) {   // Если осталась хотя бы пара байт
         uint8_t Temp = *(pBuff + 1);
         *(pBuff + 1) = *pBuff;
         *pBuff = Temp;
@@ -96,8 +95,8 @@ void rda5807_read_regfile(uint16_t *pBuff, uint8_t RegNum) {
     }
 
     // Читаем
-    i2cm_ReadBuffAndStop((uint8_t *) pBuff, RegNum << 1);
-    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
+    i2cm_ReadBuffAndStop((uint8_t *) pBuff, RegNum << 1u);
+    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
 
 /**
@@ -113,16 +112,16 @@ void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum) {
         Error_Handler();
     } //*/
 
-    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
+    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 
 //    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
 //    i2cm_Stop(I2Cx, RDA5807_TO);
 
-    if (!i2c_write(RDA5807_SeqAccess_Addr << 1u, RegNum << 1, (uint8_t *) pBuff)) {
+    if (!i2c_write(RDA5807_SeqAccess_Addr << 1u, RegNum << 1u, (uint8_t *) pBuff)) {
         Error_Handler();
     }
 
-    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
+    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
 
 /**
@@ -145,11 +144,11 @@ void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     // Читаем
     i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO); //*/
 
-    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1, (uint8_t *) pBuff)) {
+    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1u, (uint8_t *) pBuff)) {
         Error_Handler();
     }
 
-    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
+    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
 
 /**
@@ -169,16 +168,16 @@ void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
         Error_Handler();
     } //*/
 
-    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
+    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 
     //err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
     //i2cm_Stop(I2Cx, RDA5807_TO);
 
-    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1, (uint8_t *) pBuff)) {
+    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1u, (uint8_t *) pBuff)) {
         Error_Handler();
     }
 
-    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1);
+    rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
 
 /**
