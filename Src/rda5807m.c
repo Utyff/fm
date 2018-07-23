@@ -148,6 +148,11 @@ void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
         Error_Handler();
     }
 
+/*
+    I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY)
+    I2C_RequestMemoryRead(DevAddress, MemAddress, MemAddSize)
+
+*/
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
 
@@ -173,10 +178,42 @@ void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     //err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
     //i2cm_Stop(I2Cx, RDA5807_TO);
 
-    if (!i2c_mem_read(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1u, (uint8_t *) pBuff)) {
+    if (!i2c_mem_write(RDA5807_RandAccess_Addr << 1u, RegAddr, RegNum << 1u, (uint8_t *) pBuff)) {
         Error_Handler();
     }
 
+    /*
+
+ HAL_I2C_Mem_Write()
+
+    I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY)
+
+    I2C_RequestMemoryWrite(DevAddress, MemAddress, MemAddSize)
+        I2C_TransferConfig(hi2c, DevAddress, MemAddSize, I2C_RELOAD_MODE, I2C_GENERATE_START_WRITE);
+            tmpreg = hi2c->Instance->CR2;
+            // clear tmpreg specific bits
+            tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+            tmpreg |= (uint32_t)(((uint32_t)DevAddress & I2C_CR2_SADD) | (((uint32_t)Size << 16) & I2C_CR2_NBYTES) | (uint32_t)Mode | (uint32_t)Request);
+            hi2c->Instance->CR2 = tmpreg;
+        I2C_WaitOnTXISFlagUntilTimeout()
+        hi2c->ErrorCode == HAL_I2C_ERROR_AF
+        hi2c->Instance->TXDR = I2C_MEM_ADD_LSB(MemAddress)
+        I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TCR)
+
+    I2C_TransferConfig(hi2c, DevAddress, hi2c->XferSize, I2C_AUTOEND_MODE, I2C_NO_STARTSTOP);
+    I2C_WaitOnTXISFlagUntilTimeout()
+        __HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TXIS) == RESET
+        I2C_IsAcknowledgeFailed
+
+ () hi2c->Instance->TXDR = (*hi2c->pBuffPtr++);
+
+    I2C_WaitOnSTOPFlagUntilTimeout()
+    __HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_STOPF);
+    I2C_RESET_CR2()
+      ((__HANDLE__)->Instance->CR2 &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN)))
+
+
+*/
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
 
