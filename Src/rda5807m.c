@@ -149,8 +149,27 @@ void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     }
 
 /*
+HAL_I2C_Mem_Read()
+
     I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY)
     I2C_RequestMemoryRead(DevAddress, MemAddress, MemAddSize)
+        I2C_TransferConfig(DevAddress, MemAddSize, I2C_SOFTEND_MODE, I2C_GENERATE_START_WRITE)
+            tmpreg = hi2c->Instance->CR2;
+            // clear tmpreg specific bits
+            tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+            tmpreg |= (uint32_t)(((uint32_t)DevAddress & I2C_CR2_SADD) | (((uint32_t)Size << 16) & I2C_CR2_NBYTES) | (uint32_t)Mode | (uint32_t)Request);
+            hi2c->Instance->CR2 = tmpreg;
+
+        I2C_WaitOnTXISFlagUntilTimeout()
+        hi2c->Instance->TXDR = I2C_MEM_ADD_LSB(MemAddress)
+        I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TC, RESET)
+
+    I2C_TransferConfig(DevAddress, hi2c->XferSize, I2C_AUTOEND_MODE, I2C_GENERATE_START_READ)
+
+ v  I2C_WaitOnFlagUntilTimeout(I2C_FLAG_RXNE, RESET)
+    (*hi2c->pBuffPtr++) = hi2c->Instance->RXDR;
+ ^  I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TCR, RESET)
+
 
 */
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
