@@ -149,7 +149,7 @@ void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     }
 
 /*
-HAL_I2C_Mem_Read()
+HAL_I2C_Mem_Read(uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size)
 
     I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY)
     I2C_RequestMemoryRead(DevAddress, MemAddress, MemAddSize)
@@ -167,10 +167,9 @@ HAL_I2C_Mem_Read()
     I2C_TransferConfig(DevAddress, hi2c->XferSize, I2C_AUTOEND_MODE, I2C_GENERATE_START_READ)
 
  v  I2C_WaitOnFlagUntilTimeout(I2C_FLAG_RXNE, RESET)
-    (*hi2c->pBuffPtr++) = hi2c->Instance->RXDR;
- ^  I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TCR, RESET)
+ ^  (*hi2c->pBuffPtr++) = hi2c->Instance->RXDR;
 
-
+    I2C_WaitOnSTOPFlagUntilTimeout()
 */
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }
@@ -201,22 +200,20 @@ void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
         Error_Handler();
     }
 
-    /*
-
- HAL_I2C_Mem_Write()
+/*
+HAL_I2C_Mem_Write(uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size)
 
     I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY)
 
     I2C_RequestMemoryWrite(DevAddress, MemAddress, MemAddSize)
         I2C_TransferConfig(hi2c, DevAddress, MemAddSize, I2C_RELOAD_MODE, I2C_GENERATE_START_WRITE);
-            tmpreg = hi2c->Instance->CR2;
+            tmpreg = Instance->CR2;
             // clear tmpreg specific bits
             tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
             tmpreg |= (uint32_t)(((uint32_t)DevAddress & I2C_CR2_SADD) | (((uint32_t)Size << 16) & I2C_CR2_NBYTES) | (uint32_t)Mode | (uint32_t)Request);
             hi2c->Instance->CR2 = tmpreg;
         I2C_WaitOnTXISFlagUntilTimeout()
-        hi2c->ErrorCode == HAL_I2C_ERROR_AF
-        hi2c->Instance->TXDR = I2C_MEM_ADD_LSB(MemAddress)
+        Instance->TXDR = I2C_MEM_ADD_LSB(MemAddress)
         I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TCR)
 
     I2C_TransferConfig(hi2c, DevAddress, hi2c->XferSize, I2C_AUTOEND_MODE, I2C_NO_STARTSTOP);
@@ -230,8 +227,6 @@ void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     __HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_STOPF);
     I2C_RESET_CR2()
       ((__HANDLE__)->Instance->CR2 &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN)))
-
-
 */
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 }

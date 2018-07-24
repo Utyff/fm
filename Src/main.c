@@ -43,8 +43,9 @@ int main(void) {
         while (count--);
 
 //        rda5807_init();
-        prints("\n\rtuned freq: ");
-        printi(rda5807_GetFreq_In100Khz());
+//        prints("\n\rtuned freq: ");
+//        printi(rda5807_GetFreq_In100Khz());
+        rda5807_SoftReset();
 
 //        if (++sendCount > 5) {
 //            printi(0x1f);

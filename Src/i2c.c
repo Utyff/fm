@@ -2,6 +2,7 @@
 
 extern uint32_t stick;
 uint32_t cntr;
+static uint32_t Tickstart;
 
 /**
   * Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
@@ -216,18 +217,52 @@ uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
             }
             if (stick - cntr > 5) return 0;
         }
-        I2C1->TXDR = (uint32_t)(*data); // send data
+        I2C1->TXDR = (uint32_t) (*data); // send data
         data++;
     }
     return 1;
 }
 
 uint8_t i2c_mem_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
-    if( !i2c_write(i2c_addr, 1, &mem_addr)) return 0;
-    if( !i2c_read(i2c_addr, count, data)) return 0;
+    if (!i2c_write(i2c_addr, 1, &mem_addr)) return 0;
+    if (!i2c_read(i2c_addr, count, data)) return 0;
+    return 1;
 }
 
 uint8_t i2c_mem_write(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
-    if( !i2c_write(i2c_addr, 1, &mem_addr)) return 0;
-    if( !i2c_write(i2c_addr, count, data)) return 0;
+    if (!i2c_write(i2c_addr, 1, &mem_addr)) return 0;
+    if (!i2c_write(i2c_addr, count, data)) return 0;
+    return 1;
+}
+
+uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status, uint32_t Timeout) {
+    while (I2C1->ISR & Flag == Status) {
+        if ((Timeout == 0U) || ((stick - Tickstart) > Timeout)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+uint8_t I2C_WaitOnTXISFlagUntilTimeout(uint32_t Timeout) {
+    while (I2C1->ISR & I2C_ISR_TXIS == RESET) {
+        // Check if a NACK is detected
+//        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
+//            return HAL_ERROR;
+//        }
+
+        if ((Timeout == 0U) || ((stick - Tickstart) > Timeout)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void I2C_TransferConfig(uint16_t DevAddress, uint8_t Size, uint32_t Mode, uint32_t Request) {
+    // clear specific bits
+    uint32_t tmp = I2C1->CR2 & ~((I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN |
+                                  I2C_CR2_START | I2C_CR2_STOP));
+    // set bits
+    I2C1->CR2 = tmp | (((uint32_t) DevAddress & I2C_CR2_SADD) | (((uint32_t) Size << 16) & I2C_CR2_NBYTES) |
+                       Mode | Request);
 }
