@@ -1,8 +1,11 @@
 #include "i2c.h"
 
+// I2C timeout milliseconds
+#define Timeout 5
+
 extern uint32_t stick;
-uint32_t cntr;
 static uint32_t Tickstart;
+uint32_t cntr;
 
 /**
   * Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
@@ -235,23 +238,37 @@ uint8_t i2c_mem_write(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_
     return 1;
 }
 
-uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status, uint32_t Timeout) {
+uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status) {
     while (I2C1->ISR & Flag == Status) {
-        if ((Timeout == 0U) || ((stick - Tickstart) > Timeout)) {
+        if ((stick - Tickstart) > Timeout) {
             return 1;
         }
     }
     return 0;
 }
 
-uint8_t I2C_WaitOnTXISFlagUntilTimeout(uint32_t Timeout) {
+uint8_t I2C_WaitOnTXISFlagUntilTimeout() {
     while (I2C1->ISR & I2C_ISR_TXIS == RESET) {
         // Check if a NACK is detected
 //        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
 //            return HAL_ERROR;
 //        }
 
-        if ((Timeout == 0U) || ((stick - Tickstart) > Timeout)) {
+        if (stick - Tickstart > Timeout) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+uint8_t I2C_WaitOnSTOPFlagUntilTimeout() {
+    while (I2C1->I2C_ISR_STOPF == RESET) {
+        // Check if a NACK is detected
+//        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
+//            return HAL_ERROR;
+//        }
+
+        if ((stick - Tickstart) > Timeout) {
             return 1;
         }
     }
@@ -260,9 +277,61 @@ uint8_t I2C_WaitOnTXISFlagUntilTimeout(uint32_t Timeout) {
 
 void I2C_TransferConfig(uint16_t DevAddress, uint8_t Size, uint32_t Mode, uint32_t Request) {
     // clear specific bits
-    uint32_t tmp = I2C1->CR2 & ~((I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN |
-                                  I2C_CR2_START | I2C_CR2_STOP));
+    uint32_t tmp = I2C1->CR2 & ~(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND
+                                 | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP);
     // set bits
-    I2C1->CR2 = tmp | (((uint32_t) DevAddress & I2C_CR2_SADD) | (((uint32_t) Size << 16) & I2C_CR2_NBYTES) |
-                       Mode | Request);
+    I2C1->CR2 = tmp | ((DevAddress & I2C_CR2_SADD) | (((uint32_t) Size << 16u) & I2C_CR2_NBYTES) | Mode | Request);
+}
+
+/**
+  * @brief  Write an amount of data in blocking mode to a specific memory address
+  * @param  DevAddress Target device address: The device 7 bits address value
+  *         in datasheet must be shift at right before call interface
+  * @param  MemAddress Internal memory address
+  * @param  pData Pointer to data buffer
+  * @param  Size Amount of data to be sent
+  * @retval 0 - ok
+  */
+
+uint8_t I2C_Mem_Read(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, uint8_t Size) {
+    Tickstart = stick;
+
+    if (I2C_WaitOnFlagUntilTimeout(I2C_ISR_BUSY, I2C_ISR_BUSY)) return 1;
+
+    I2C_TransferConfig(DevAddress, 1, 0, I2C_CR2_START); // 1 - addr size, 0 - SOFT_END_MODE
+
+    if (I2C_WaitOnTXISFlagUntilTimeout()) return 1;
+    I2C1->TXDR = MemAddress & 0xFFu;
+    if (I2C_WaitOnFlagUntilTimeout(I2C_ISR_TC, RESET)) return 1;
+
+    I2C_TransferConfig(DevAddress, Size, I2C_CR2_AUTOEND, I2C_CR2_START | I2C_CR2_RD_WRN);
+
+    do {
+        I2C_WaitOnFlagUntilTimeout(I2C_ISR_RXNE, RESET);
+        (*pData++) = (uint8_t) I2C1->RXDR;
+    } while (--Size > 0);
+
+    if (I2C_WaitOnSTOPFlagUntilTimeout()) return 1;
+    I2C1->CR2 &= ~(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN); // Clear CR2
+}
+
+uint8_t I2C_Mem_Write(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, uint8_t Size) {
+
+    if (I2C_WaitOnFlagUntilTimeout(I2C_ISR_BUSY, I2C_ISR_BUSY)) return 1;
+
+    I2C_TransferConfig(DevAddress, 1, I2C_CR2_RELOAD, I2C_CR2_START); // I2C_RELOAD_MODE, I2C_GENERATE_START_WRITE
+
+    if (I2C_WaitOnTXISFlagUntilTimeout()) return 1;
+    I2C1->TXDR = MemAddress & 0xFFu;
+    if (I2C_WaitOnFlagUntilTimeout(I2C_ISR_TCR, RESET)) return 1;
+
+    I2C_TransferConfig(DevAddress, Size, I2C_CR2_AUTOEND, 0); // I2C_AUTOEND_MODE, I2C_NO_STARTSTOP
+
+    do {
+        if (I2C_WaitOnTXISFlagUntilTimeout()) return 1;
+        I2C1->TXDR = *pData++;
+    } while (--Size > 0);
+
+    if (I2C_WaitOnSTOPFlagUntilTimeout()) return 1;
+    I2C1->CR2 &= ~(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN);
 }
