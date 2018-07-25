@@ -11,7 +11,7 @@ uint8_t buf11[64];
 void rda5807_init() {
     uint8_t buf[2] = {0, 0};
     i2cm_init();
-    uint8_t err = i2c_mem_read(RDA5807_RandAccess_Addr << 1u, 0, 2, buf);
+    uint8_t err = I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, 0, buf, 2);
 
     //HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
     prints("\n\r -- init err: ");
@@ -117,7 +117,7 @@ void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum) {
 //    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
 //    i2cm_Stop(I2Cx, RDA5807_TO);
 
-    if (!i2c_write(RDA5807_SeqAccess_Addr << 1u, RegNum << 1u, (uint8_t *) pBuff)) {
+    if (I2C_Master_Transmit(RDA5807_SeqAccess_Addr << 1u, (uint8_t *) pBuff, RegNum << 1u)) {
         Error_Handler();
     }
 

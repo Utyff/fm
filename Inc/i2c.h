@@ -45,4 +45,6 @@ uint8_t I2C_Mem_Read(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, ui
 
 uint8_t I2C_Mem_Write(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, uint8_t Size);
 
+uint8_t I2C_Master_Transmit(uint16_t DevAddress, uint8_t *pData, uint8_t Size);
+
 #endif //FM_I2C_H
