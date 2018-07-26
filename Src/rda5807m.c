@@ -68,10 +68,6 @@ void rda5807_init() {
 //    printi(rda5807_GetFreq_In100Khz());
 }
 
-void rda5807_bus_init() {
-    i2cm_init();
-}
-
 /**
   * Процедура меняет местами байты попарно в буфере pBuff
   */
