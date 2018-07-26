@@ -19,6 +19,7 @@ void Configure_USART2(void);
 
 uint8_t send = 0;
 uint8_t stringtosend[32] = "STm\n";
+uint32_t stick = 0;
 
 int main(void) {
 
@@ -42,16 +43,8 @@ int main(void) {
         uint32_t count = 1000000;
         while (count--);
 
-//        rda5807_init();
-//        prints("\n\rtuned freq: ");
-//        printi(rda5807_GetFreq_In100Khz());
-        rda5807_SoftReset();
-
-//        if (++sendCount > 5) {
-//            printi(0x1f);
-//            prints(" STM\n\r");
-//            sendCount = 0;
-//        }
+        prints("\n\rtuned freq: ");
+        printi(rda5807_GetFreq_In100Khz());
     }
 }
 
@@ -169,8 +162,6 @@ void HardFault_Handler(void) {
 /**
   * @brief  This function handles SysTick Handler.
   */
-uint32_t stick = 0;
-
 void SysTick_Handler(void) {
     stick++;
 }
@@ -208,13 +199,6 @@ void _strcpy(uint8_t *dst, const uint8_t *src) {
 }
 
 #define hex2char(hex) (uint8_t)((hex)<=9 ? (hex) +'0' : (hex) + 'a' - 10)
-//uint8_t hex2char(uint8_t hex) {
-//    uint8_t res = 0, u1, u2;
-//    u1 = hex + '0';
-//    u2 = hex + 'a' - 10;
-//    res = hex <= 9 ? u1 : u2;
-//    return res;
-//}
 
 void printi(uint16_t val) {
     uint8_t buf[5];

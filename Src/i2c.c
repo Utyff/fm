@@ -201,7 +201,7 @@ uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
 // ======== HAL ==========
 
 uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status) {
-    while (I2C1->ISR & Flag == Status) {
+    while ((I2C1->ISR & Flag) == Status) {
         if ((stick - Tickstart) > Timeout) {
             return 1;
         }
@@ -210,7 +210,7 @@ uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status) {
 }
 
 uint8_t I2C_WaitOnTXISFlagUntilTimeout() {
-    while (I2C1->ISR & I2C_ISR_TXIS == RESET) {
+    while ((I2C1->ISR & I2C_ISR_TXIS) == RESET) {
         // Check if a NACK is detected
 //        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
 //            return HAL_ERROR;
@@ -224,7 +224,7 @@ uint8_t I2C_WaitOnTXISFlagUntilTimeout() {
 }
 
 uint8_t I2C_WaitOnRXNEFlagUntilTimeout() {
-    while (I2C1->ISR & I2C_ISR_RXNE == RESET) {
+    while ((I2C1->ISR & I2C_ISR_RXNE) == RESET) {
         // Check if a NACK is detected
 //        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
 //            return HAL_ERROR;
@@ -239,7 +239,7 @@ uint8_t I2C_WaitOnRXNEFlagUntilTimeout() {
 }
 
 uint8_t I2C_WaitOnSTOPFlagUntilTimeout() {
-    while (I2C1->ISR & I2C_ISR_STOPF == RESET) {
+    while ((I2C1->ISR & I2C_ISR_STOPF) == RESET) {
         // Check if a NACK is detected
 //        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
 //            return HAL_ERROR;
@@ -282,7 +282,7 @@ uint8_t I2C_Mem_Read(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, ui
 
     I2C_TransferConfig(DevAddress, Size, I2C_CR2_AUTOEND, I2C_CR2_START | I2C_CR2_RD_WRN);
 
-    while(Size > 0) {
+    while (Size > 0) {
         I2C_WaitOnFlagUntilTimeout(I2C_ISR_RXNE, RESET);
         (*pData++) = (uint8_t) I2C1->RXDR;
         Size--;

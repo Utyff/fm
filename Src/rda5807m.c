@@ -22,7 +22,7 @@ void rda5807_init() {
     printi(buf[1]);
     prints("\n\r");
 
-    if (err == 0 || buf[0] != 0x58 || buf[1] != 4) {
+    if (err != 0 || buf[0] != 0x58 || buf[1] != 4) {
         Error_Handler();
     }
 /*    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
