@@ -20,7 +20,7 @@ void i2cm_init() {
     // (3) Select AF mode (10) on PF0 and PF1
     GPIOF->OTYPER |= GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1; // (1)
     GPIOF->AFR[0] = (GPIOF->AFR[0] & ~(GPIO_AFRL_AFRL0 | GPIO_AFRL_AFRL1))
-                    | (1 << (0 * 4)) | (1 << (1 * 4)); // (2)
+                    | (1u << (0u * 4)) | (1u << (1u * 4)); // (2)
     GPIOF->MODER = (GPIOF->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER1))
                    | (GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1); // (3)
 
