@@ -9,14 +9,14 @@ static uint32_t Tickstart;
 uint32_t cntr;
 
 /**
-  * Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
+  * Процедура инициализации I2C1 в режиме master с частотой интерфейса 100KHz
   */
 void i2cm_init() {
     // Enable the peripheral clock of GPIOF
     RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
 
-    // (1) open drain for I2C signals
-    // (2) AF1 for I2C signals
+    // (1) open drain for I2C1 signals
+    // (2) AF1 for I2C1 signals
     // (3) Select AF mode (10) on PF0 and PF1
     GPIOF->OTYPER |= GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1; // (1)
     GPIOF->AFR[0] = (GPIOF->AFR[0] & ~(GPIO_AFRL_AFRL0 | GPIO_AFRL_AFRL1))
@@ -24,51 +24,17 @@ void i2cm_init() {
     GPIOF->MODER = (GPIOF->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER1))
                    | (GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1); // (3)
 
-    // Enable the peripheral clock I2C2
+    // Enable the peripheral clock I2C1
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
     // Use SysClk for I2C CLK
     RCC->CFGR3 |= RCC_CFGR3_I2C1SW;
 
-    // Configure I2C2, master
+    // Configure I2C1, master
     // (1) Timing register value is computed with the AN4235 xls file,
-    // fast Mode @400kHz with I2CCLK = 48MHz, rise time = 140ns, fall time = 40ns
+    // fast Mode @100kHz with I2CCLK = 48MHz, rise time = 140ns, fall time = 40ns
     // (2) Periph enable
-    // (3) Slave address = 0x5A, write transfer, 1 byte to transmit, autoend
     I2C1->TIMINGR = (uint32_t) 0x20303E5D; // 100khz 0ms 0ms  // 0x00B01A4B; // (1)
     I2C1->CR1 = I2C_CR1_PE; // (2)
-    //I2C1->CR2 = I2C_CR2_AUTOEND | (1 << 16) | (I2C1_OWN_ADDRESS << 1); // (3)
-
-    /*/ Стартуем тактирование GPIO и I2C1
-    if (I2Cx == I2C1)
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-    else
-        RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-
-    // Настраиваем I2C
-    I2C_Cmd(I2Cx, DISABLE);
-    I2C_DeInit(I2Cx);
-    I2C_InitTypeDef i2c_InitStruct;
-    i2c_InitStruct.I2C_Mode = I2C_Mode_I2C;
-    i2c_InitStruct.I2C_ClockSpeed = i2c_clock;
-    i2c_InitStruct.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-    i2c_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;
-    i2c_InitStruct.I2C_Ack = I2C_Ack_Enable;
-    i2c_InitStruct.I2C_OwnAddress1 = 0;
-    I2C_Cmd(I2Cx, ENABLE);
-    I2C_Init(I2Cx, &i2c_InitStruct);
-
-    // Настраиваем ноги GPIO
-    GPIO_InitTypeDef InitStruct;
-    InitStruct.GPIO_Mode = GPIO_Mode_AF_OD;
-    InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-
-    if (I2Cx == I2C1)
-        InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
-    else
-        InitStruct.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
-
-    GPIO_Init(GPIOB, &InitStruct); //*/
 }
 
 
@@ -77,6 +43,7 @@ void i2cm_init() {
   */
 int8_t i2cm_Start(uint8_t slave_addr, uint8_t IsRead) {
     uint16_t TOcntr;
+    Error_Handler();
 
     // Выдаём условие START
     // I2C_GenerateSTART(I2Cx, ENABLE);
@@ -112,11 +79,12 @@ int8_t i2cm_Start(uint8_t slave_addr, uint8_t IsRead) {
     return I2C_Ok;
 }
 
-
 /**
   * Функция выдаёт условие STOP
   */
 int8_t i2cm_Stop() {
+    Error_Handler();
+
 /*    I2C_GenerateSTOP(I2Cx, ENABLE);
     uint16_t TOcntr = TimeOut;
     while (I2C_GetFlagStatus(I2Cx, I2C_FLAG_STOPF) && TOcntr);
@@ -126,11 +94,12 @@ int8_t i2cm_Stop() {
     return I2C_Ok;
 }
 
-
 /**
   * Функция выдаёт на шину массив байт из буфера
   */
 int8_t i2cm_WriteBuff(uint8_t *pbuf, uint16_t len) {
+    Error_Handler();
+
 /*    uint16_t TOcntr;
 
     while (len--) {
@@ -144,11 +113,12 @@ int8_t i2cm_WriteBuff(uint8_t *pbuf, uint16_t len) {
     return I2C_Ok;
 }
 
-
 /**
   * Функция читает массив байт с шины и выдаёт условие STOP
   */
 int8_t i2cm_ReadBuffAndStop(uint8_t *pbuf, uint16_t len) {
+    Error_Handler();
+
 /*    uint16_t TOcntr;
 
     // Разрешаем выдачу подтверждений ACK
@@ -173,11 +143,10 @@ int8_t i2cm_ReadBuffAndStop(uint8_t *pbuf, uint16_t len) {
     return I2C_Ok;
 }
 
-uint32_t cntr;
-
 // HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1, RDA5807_TO);
 // return 1 if all OK, 0 if NACK
 uint8_t i2c_read(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
+    Error_Handler();
 
     cntr = stick;
     while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
@@ -204,6 +173,8 @@ uint8_t i2c_read(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
 }
 
 uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
+    Error_Handler();
+
     cntr = stick;
     while (I2C1->ISR & I2C_ISR_BUSY) if (stick - cntr > 5) return 0;  // check busy
     cntr = stick;
@@ -227,17 +198,7 @@ uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data) {
     return 1;
 }
 
-uint8_t i2c_mem_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
-    if (!i2c_write(i2c_addr, 1, &mem_addr)) return 0;
-    if (!i2c_read(i2c_addr, count, data)) return 0;
-    return 1;
-}
-
-uint8_t i2c_mem_write(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data) {
-    if (!i2c_write(i2c_addr, 1, &mem_addr)) return 0;
-    if (!i2c_write(i2c_addr, count, data)) return 0;
-    return 1;
-}
+// ======== HAL ==========
 
 uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status) {
     while (I2C1->ISR & Flag == Status) {
@@ -254,6 +215,21 @@ uint8_t I2C_WaitOnTXISFlagUntilTimeout() {
 //        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
 //            return HAL_ERROR;
 //        }
+
+        if (stick - Tickstart > Timeout) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+uint8_t I2C_WaitOnRXNEFlagUntilTimeout() {
+    while (I2C1->ISR & I2C_ISR_RXNE == RESET) {
+        // Check if a NACK is detected
+//        if (I2C_IsAcknowledgeFailed(hi2c, Timeout, Tickstart) != HAL_OK) {
+//            return HAL_ERROR;
+//        }
+        // Check if a STOPF is detected
 
         if (stick - Tickstart > Timeout) {
             return 1;
@@ -291,9 +267,8 @@ void I2C_TransferConfig(uint16_t DevAddress, uint8_t Size, uint32_t Mode, uint32
   * @param  MemAddress Internal memory address
   * @param  pData Pointer to data buffer
   * @param  Size Amount of data to be sent
-  * @retval 0 - ok
+  * @retval 0 - ok, other - error code
   */
-
 uint8_t I2C_Mem_Read(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, uint8_t Size) {
     Tickstart = stick;
 
@@ -307,15 +282,46 @@ uint8_t I2C_Mem_Read(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, ui
 
     I2C_TransferConfig(DevAddress, Size, I2C_CR2_AUTOEND, I2C_CR2_START | I2C_CR2_RD_WRN);
 
-    do {
+    while(Size > 0) {
         I2C_WaitOnFlagUntilTimeout(I2C_ISR_RXNE, RESET);
         (*pData++) = (uint8_t) I2C1->RXDR;
-    } while (--Size > 0);
+        Size--;
+    }
 
     if (I2C_WaitOnSTOPFlagUntilTimeout()) Error_Handler(); // return 1;
     I2C1->CR2 &= ~(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN); // Clear CR2
+
     return 0;
 }
+
+/*
+HAL_I2C_Mem_Read(uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size)
+
+    I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY, SET)
+    I2C_RequestMemoryRead(DevAddress, MemAddress, MemAddSize)
+        I2C_TransferConfig(DevAddress, MemAddSize, I2C_SOFTEND_MODE, I2C_GENERATE_START_WRITE) // 0u, I2C_CR2_START
+            tmpreg = Instance->CR2;
+            // clear tmpreg specific bits
+            tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+            tmpreg |= (uint32_t)(((uint32_t)DevAddress & I2C_CR2_SADD) | (((uint32_t)Size << 16) & I2C_CR2_NBYTES) | (uint32_t)Mode | (uint32_t)Request);
+            Instance->CR2 = tmpreg;
+
+        I2C_WaitOnTXISFlagUntilTimeout()
+        Instance->TXDR = I2C_MEM_ADD_LSB(MemAddress)
+        I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TC, RESET)
+
+    I2C_TransferConfig(DevAddress, hi2c->XferSize, I2C_AUTOEND_MODE, I2C_GENERATE_START_READ)  // I2C_CR2_AUTOEND, (uint32_t)(I2C_CR2_START | I2C_CR2_RD_WRN)
+
+ v  I2C_WaitOnFlagUntilTimeout(I2C_FLAG_RXNE, RESET)
+ ^  (*hi2c->pBuffPtr++) = hi2c->Instance->RXDR;
+
+    I2C_WaitOnSTOPFlagUntilTimeout()
+
+    __HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_STOPF);
+    // Clear Configuration Register 2
+    I2C_RESET_CR2(hi2c);
+
+ */
 
 uint8_t I2C_Mem_Write(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, uint8_t Size) {
     Tickstart = stick;
@@ -337,23 +343,74 @@ uint8_t I2C_Mem_Write(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, u
 
     if (I2C_WaitOnSTOPFlagUntilTimeout()) return 1;
     I2C1->CR2 &= ~(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN);
+
     return 0;
 }
+
+/*
+HAL_I2C_Mem_Write(uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size)
+
+    I2C_WaitOnFlagUntilTimeout(I2C_FLAG_BUSY, SET)
+
+    I2C_RequestMemoryWrite(DevAddress, MemAddress, MemAddSize)
+        I2C_TransferConfig(hi2c, DevAddress, MemAddSize, I2C_RELOAD_MODE, I2C_GENERATE_START_WRITE);
+            tmpreg = Instance->CR2;
+            // clear tmpreg specific bits
+            tmpreg &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | I2C_CR2_START | I2C_CR2_STOP));
+            tmpreg |= (uint32_t)(((uint32_t)DevAddress & I2C_CR2_SADD) | (((uint32_t)Size << 16) & I2C_CR2_NBYTES) | (uint32_t)Mode | (uint32_t)Request);
+            hi2c->Instance->CR2 = tmpreg;
+        I2C_WaitOnTXISFlagUntilTimeout()
+        Instance->TXDR = I2C_MEM_ADD_LSB(MemAddress)
+        I2C_WaitOnFlagUntilTimeout(I2C_FLAG_TCR, RESET)
+
+    I2C_TransferConfig(hi2c, DevAddress, hi2c->XferSize, I2C_AUTOEND_MODE, I2C_NO_STARTSTOP);
+
+ v  I2C_WaitOnTXISFlagUntilTimeout()
+        __HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TXIS) == RESET
+        I2C_IsAcknowledgeFailed
+ ^  hi2c->Instance->TXDR = (*hi2c->pBuffPtr++);
+
+    I2C_WaitOnSTOPFlagUntilTimeout()
+    __HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_STOPF);
+    I2C_RESET_CR2()
+      ((__HANDLE__)->Instance->CR2 &= (uint32_t)~((uint32_t)(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN)))
+*/
+
 
 uint8_t I2C_Master_Transmit(uint16_t DevAddress, uint8_t *pData, uint8_t Size) {
     Tickstart = stick;
 
-    if (!I2C_WaitOnFlagUntilTimeout(I2C_ISR_BUSY, I2C_ISR_BUSY)) return 1;
+    if (I2C_WaitOnFlagUntilTimeout(I2C_ISR_BUSY, I2C_ISR_BUSY)) return 1;
 
-    I2C_TransferConfig(DevAddress, Size, I2C_CR2_RELOAD, I2C_CR2_START); // I2C_RELOAD_MODE, I2C_GENERATE_START_WRITE
+    I2C_TransferConfig(DevAddress, Size, I2C_CR2_AUTOEND, I2C_CR2_START); // I2C_AUTOEND_MODE, I2C_GENERATE_START_WRITE
 
     while (Size > 0) {
-        if (!I2C_WaitOnTXISFlagUntilTimeout()) return 1;
+        if (I2C_WaitOnTXISFlagUntilTimeout()) return 1;
         I2C1->TXDR = (*pData++);
         Size--;
     }
 
-    if (!I2C_WaitOnSTOPFlagUntilTimeout()) return 1;
+    if (I2C_WaitOnSTOPFlagUntilTimeout()) return 1;
     I2C1->CR2 &= ~(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN);
+    return 0;
+}
+
+uint8_t I2C_Master_Receive(uint16_t DevAddress, uint8_t *pData, uint8_t Size) {
+    Tickstart = stick;
+
+    if (I2C_WaitOnFlagUntilTimeout(I2C_ISR_BUSY, I2C_ISR_BUSY)) return 1;
+
+    // I2C_AUTOEND_MODE, I2C_GENERATE_START_READ
+    I2C_TransferConfig(DevAddress, Size, I2C_CR2_AUTOEND, I2C_CR2_START | I2C_CR2_RD_WRN);
+    while (Size > 0U) {
+        if (I2C_WaitOnRXNEFlagUntilTimeout()) return 1;
+
+        // Read data from RXDR
+        (*pData++) = (uint8_t) I2C1->RXDR;
+        Size--;
+    }
+    if (I2C_WaitOnSTOPFlagUntilTimeout()) return 1;
+    I2C1->CR2 &= ~(I2C_CR2_SADD | I2C_CR2_HEAD10R | I2C_CR2_NBYTES | I2C_CR2_RELOAD | I2C_CR2_RD_WRN);
+
     return 0;
 }

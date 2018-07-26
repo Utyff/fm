@@ -29,10 +29,6 @@ uint8_t i2c_read(uint16_t i2c_addr, uint8_t count, uint8_t *data);
 
 uint8_t i2c_write(uint16_t i2c_addr, uint8_t count, uint8_t *data);
 
-uint8_t i2c_mem_read(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data);
-
-uint8_t i2c_mem_write(uint16_t i2c_addr, uint8_t mem_addr, uint8_t count, uint8_t *data);
-
 void I2C_TransferConfig(uint16_t DevAddress, uint8_t Size, uint32_t Mode, uint32_t Request);
 
 uint8_t I2C_WaitOnFlagUntilTimeout(uint32_t Flag, uint32_t Status);
@@ -46,5 +42,7 @@ uint8_t I2C_Mem_Read(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, ui
 uint8_t I2C_Mem_Write(uint16_t DevAddress, uint8_t MemAddress, uint8_t *pData, uint8_t Size);
 
 uint8_t I2C_Master_Transmit(uint16_t DevAddress, uint8_t *pData, uint8_t Size);
+
+uint8_t I2C_Master_Receive(uint16_t DevAddress, uint8_t *pData, uint8_t Size);
 
 #endif //FM_I2C_H
