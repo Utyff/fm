@@ -1,5 +1,8 @@
 #include "stm32f0xx.h"
 #include <rda5807m.h>
+#include <spi.h>
+#include <ssd1306_tests.h>
+#include <ssd1306.h>
 #include "main.h"
 
 
@@ -20,6 +23,8 @@ void Configure_USART2(void);
 uint8_t send = 0;
 uint8_t stringtosend[32] = "STm\n";
 uint32_t stick = 0;
+uint32_t Tickstart; // operation start time. For detect timeout
+
 
 int main(void) {
 
@@ -29,38 +34,40 @@ int main(void) {
     Configure_EXTI();
     Configure_GPIO_USART2();
     Configure_USART2();
+    Configure_GPIO_SPI1();
+    Configure_SPI1();
 
     rda5807_init();
+    ssd1306_Init();
+    ssd1306_TestAll();
 
-    GPIOA->ODR ^= GPIO_ODR_6;
-    uint32_t sendCount = 100;
+    LED1_TOGGLE();
 
     while (1) {
-        // toggle green LED
-        GPIOA->ODR ^= GPIO_ODR_6;
-        GPIOA->ODR ^= GPIO_ODR_5;
-
-        uint32_t count = 1000000;
-        while (count--);
+        LED1_TOGGLE();
+        LED2_TOGGLE();
 
         prints("\n\rtuned freq: ");
         printi(rda5807_GetFreq_In100Khz());
+
+        Delay(300);
     }
 }
 
 /**
   * @brief  This function :
-             - Enables GPIO clock
-             - Configures the Green LED pin on GPIO PC9
-             - Configures the orange LED pin on GPIO PC8
+             - Enables LEDs GPIO clock
+             - Configures the Green LED pin on GPIO PA4
+             - Configures the orange LED pin on GPIO PB8
   */
 __INLINE void Configure_GPIO_LED(void) {
     // Enable the peripheral clock of GPIOA
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
-    // Select output mode (01) on PC8 and PC9
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5 | GPIO_MODER_MODER6))
-                   | (GPIO_MODER_MODER5_0 | GPIO_MODER_MODER6_0);
+    // Select output mode (01) on PA4 and PB8
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER4)) | (GPIO_MODER_MODER4_0);
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER8)) | (GPIO_MODER_MODER8_0);
 }
 
 /**
@@ -69,11 +76,11 @@ __INLINE void Configure_GPIO_LED(void) {
              - Configures the Push Button GPIO PA0
   */
 __INLINE void Configure_GPIO_Button(void) {
-    /* Enable the peripheral clock of GPIOA */
+    // Enable the peripheral clock of GPIOA
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
-    /* Select mode */
-    /* Select input mode (00) on PA0 */
+    // Select mode
+    // Select input mode (00) on PA0
 //    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER0));
 }
 
@@ -92,34 +99,34 @@ __INLINE void Configure_GPIO_USART2(void) {
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER2 | GPIO_MODER_MODER3))
                    | (GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1); // (1)
     GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3))
-                    | (1 << (2 * 4)) | (1 << (3 * 4)); // (2)
+                    | (1u << (2u * 4)) | (1u << (3u * 4)); // (2)
 }
 
 /**
   * @brief  This function configures USART2.
   */
 __INLINE void Configure_USART2(void) {
-    /* Enable the peripheral clock USART2 */
+    // Enable the peripheral clock USART2
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
-    /* Configure USART2 */
-    /* (1) oversampling by 16, 115200 baud */
-    /* (2) 8 data bit, 1 start bit, 1 stop bit, no parity */
-    USART2->BRR = 480000 / 1152; /* (1) */
-    USART2->CR1 = USART_CR1_TE | USART_CR1_UE; /* (2) */
+    // Configure USART2
+    // (1) oversampling by 16, 115200 baud
+    // (2) 8 data bit, 1 start bit, 1 stop bit, no parity
+    USART2->BRR = 480000 / 1152; // (1)
+    USART2->CR1 = USART_CR1_TE | USART_CR1_UE; // (2)
 
-    /* polling idle frame Transmission */
+    // polling idle frame Transmission
     while ((USART2->ISR & USART_ISR_TC) != USART_ISR_TC) {
-        /* add time out here for a robust application */
+        // add time out here for a robust application
     }
-    USART2->ICR |= USART_ICR_TCCF;/* clear TC flag */
-    USART2->CR1 |= USART_CR1_TCIE;/* enable TC interrupt */
+    USART2->ICR |= USART_ICR_TCCF;// clear TC flag
+    USART2->CR1 |= USART_CR1_TCIE;// enable TC interrupt
 
-    /* Configure IT */
-    /* (3) Set priority for USART2_IRQn */
-    /* (4) Enable USART2_IRQn */
-    NVIC_SetPriority(USART2_IRQn, 0); /* (3) */
-    NVIC_EnableIRQ(USART2_IRQn); /* (4) */
+    // Configure IT
+    // (3) Set priority for USART2_IRQn
+    // (4) Enable USART2_IRQn
+    NVIC_SetPriority(USART2_IRQn, 0); // (3)
+    NVIC_EnableIRQ(USART2_IRQn); // (4)
 }
 
 
@@ -127,17 +134,17 @@ __INLINE void Configure_USART2(void) {
   * @brief  This function configures EXTI.
   */
 __INLINE void Configure_EXTI(void) {
-    /* Configure Syscfg, exti and nvic for pushbutton PA0 */
-    /* (1) PA0 as source input */
-    /* (2) unmask port 0 */
-    /* (3) Rising edge */
-    /* (4) Set priority */
-    /* (5) Enable EXTI0_1_IRQn */
-//    SYSCFG->EXTICR[0] = (SYSCFG->EXTICR[0] & ~SYSCFG_EXTICR1_EXTI0) | SYSCFG_EXTICR1_EXTI0_PA; /* (1) */
-//    EXTI->IMR |= EXTI_IMR_MR0; /* (2) */
-//    EXTI->RTSR |= EXTI_RTSR_TR0; /* (3) */
-//    NVIC_SetPriority(EXTI0_1_IRQn, 0); /* (4) */
-//    NVIC_EnableIRQ(EXTI0_1_IRQn); /* (5) */
+    // Configure Syscfg, exti and nvic for pushbutton PA0
+    // (1) PA0 as source input
+    // (2) unmask port 0
+    // (3) Rising edge
+    // (4) Set priority
+    // (5) Enable EXTI0_1_IRQn
+//    SYSCFG->EXTICR[0] = (SYSCFG->EXTICR[0] & ~SYSCFG_EXTICR1_EXTI0) | SYSCFG_EXTICR1_EXTI0_PA; // (1)
+//    EXTI->IMR |= EXTI_IMR_MR0; // (2)
+//    EXTI->RTSR |= EXTI_RTSR_TR0; // (3)
+//    NVIC_SetPriority(EXTI0_1_IRQn, 0); // (4)
+//    NVIC_EnableIRQ(EXTI0_1_IRQn); // (5)
 }
 
 /******************************************************************************/
@@ -154,7 +161,7 @@ void NMI_Handler(void) {
   * @brief  This function handles Hard Fault exception.
   */
 void HardFault_Handler(void) {
-    /* Go to infinite loop when Hard Fault exception occurs */
+    // Go to infinite loop when Hard Fault exception occurs
     while (1) {
     }
 }
@@ -191,6 +198,11 @@ void USART2_IRQHandler(void) {
     }
 }
 
+void Delay(uint32_t delay) {
+    uint32_t start = stick;
+    while (stick - start < delay);
+}
+
 void _strcpy(uint8_t *dst, const uint8_t *src) {
     int i = 0;
     do {
@@ -198,14 +210,14 @@ void _strcpy(uint8_t *dst, const uint8_t *src) {
     } while (src[i++] != 0);
 }
 
-#define hex2char(hex) (uint8_t)((hex)<=9 ? (hex) +'0' : (hex) + 'a' - 10)
+#define hex2char(hex) (uint8_t)((hex)<=9u ? (hex) + '0' : (hex) + 'a' - 10u)
 
 void printi(uint16_t val) {
     uint8_t buf[5];
 
-    buf[0] = hex2char(val >> 12 & 0xFu);
-    buf[1] = hex2char(val >> 8 & 0xFu);
-    buf[2] = hex2char(val >> 4 & 0xFu);
+    buf[0] = hex2char(val >> 12u & 0xFu);
+    buf[1] = hex2char(val >> 8u & 0xFu);
+    buf[2] = hex2char(val >> 4u & 0xFu);
     buf[3] = hex2char(val & 0xFu);
     buf[4] = 0;
 

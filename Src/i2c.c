@@ -1,12 +1,6 @@
 #include <main.h>
 #include "i2c.h"
 
-// I2C timeout milliseconds
-#define Timeout 5
-
-extern uint32_t stick;
-static uint32_t Tickstart;
-uint32_t cntr;
 
 /**
   * Процедура инициализации I2C1 в режиме master с частотой интерфейса 100KHz
