@@ -3,6 +3,7 @@
 #include <spi.h>
 #include <ssd1306_tests.h>
 #include <ssd1306.h>
+#include <usb_lib.h>
 #include "main.h"
 
 
@@ -36,6 +37,7 @@ int main(void) {
     Configure_USART2();
     Configure_GPIO_SPI1();
     Configure_SPI1();
+    USB_Init();
 
     rda5807_init();
 

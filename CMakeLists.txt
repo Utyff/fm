@@ -25,9 +25,9 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DSTM32F042x6)
 
-file(GLOB_RECURSE SOURCES "startup/*.*" "Drivers/*.*" "Src/*.*" "Inc/*.*")
+file(GLOB_RECURSE SOURCES "startup/*.*" "Drivers/*.*" "Src/*.*" "Inc/*.*" "usb_lib/*.c")
 
-include_directories(Inc Drivers/CMSIS/Device/ST/STM32F0xx/Include Drivers/CMSIS/Include)
+include_directories(Inc Drivers/CMSIS/Device/ST/STM32F0xx/Include Drivers/CMSIS/Include usb_lib)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 

@@ -142,10 +142,10 @@ void ssd1306_Init(void) {
 
     ssd1306_WriteCommand(0xA1); // Set Segment Re-map - CHECK
     ssd1306_WriteCommand(0xC0); // Set Common Output Scan Direction (i.e. reverset)
-    
+
     ssd1306_WriteCommand(0xDA); // Common Pads Hardware Configuration (Alternative Mode Set) - CHECK
     ssd1306_WriteCommand(0x12);
-    
+
     ssd1306_WriteCommand(0xD3); // Set Display Offset (0x00) - CHECK
     ssd1306_WriteCommand(0x00);
 
