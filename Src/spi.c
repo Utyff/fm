@@ -9,6 +9,11 @@
 void Configure_GPIO_SPI1(void) {
     // Enable the peripheral clock of GPIOA
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+
+    // Select output mode (01) on PA6 for DC and PB1 for CS
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER6)) | (GPIO_MODER_MODER6_0);
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER1)) | (GPIO_MODER_MODER1_0);
 
     // (1) Select AF mode (10) on PA5, PA7
     // (2) AF0 for SPI1 signals
