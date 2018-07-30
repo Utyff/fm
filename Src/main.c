@@ -234,10 +234,12 @@ void prints(const char *str) {
 
     _strcpy(string2send, (uint8_t *) str);
     // start USART transmission. Will initiate TC if TXE
-    USART2->TDR = string2send[send++];
+    USART2->TDR = string2send[send];
+    send = 1;
 }
 
 #pragma clang diagnostic ignored "-Wunused-parameter"
+
 /**
   * @brief  This function is executed in case of error occurrence.
   * @param  file: The file name as string.

@@ -32,37 +32,23 @@ void ssd1306_WriteData(uint8_t* buffer, size_t buff_size) {
 
 void ssd1306_Reset(void) {
     // CS = High (not selected)
-//	HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_CS_Pin, GPIO_PIN_SET);
     CS_SET();
-
-    // Reset the OLED
-//	HAL_GPIO_WritePin(SSD1306_Reset_Port, SSD1306_Reset_Pin, GPIO_PIN_RESET);
-//	HAL_Delay(10);
-//	HAL_GPIO_WritePin(SSD1306_Reset_Port, SSD1306_Reset_Pin, GPIO_PIN_SET);
-//	HAL_Delay(10);
 }
 
 // Send a byte to the command register
 void ssd1306_WriteCommand(uint8_t byte) {
-//    HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
-    CS_RESET();
-//    HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_RESET); // command
-    DC_RESET();
-
+    CS_RESET(); // select OLED
+    DC_RESET(); // command
     SPI_Transmit(&byte, 1);
-//    HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
-    CS_SET();
+    CS_SET(); // un-select OLED
 }
 
 // Send data
 void ssd1306_WriteData(uint8_t *buffer, uint16_t buff_size) {
-//    HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_RESET); // select OLED
-    CS_RESET();
-//    HAL_GPIO_WritePin(SSD1306_DC_Port, SSD1306_DC_Pin, GPIO_PIN_SET); // data
-    DC_SET();
+    CS_RESET(); // select OLED
+    DC_SET(); // data
     SPI_Transmit(buffer, buff_size);
-//    HAL_GPIO_WritePin(SSD1306_CS_Port, SSD1306_CS_Pin, GPIO_PIN_SET); // un-select OLED
-    CS_SET();
+    CS_SET(); // un-select OLED
 }
 
 #else
@@ -218,15 +204,15 @@ void ssd1306_DrawPixel(uint8_t x, uint8_t y, SSD1306_COLOR color) {
 
     // Draw in the right color
     if (color == White) {
-        SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1 << (y % 8);
+        SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1u << (y % 8u);
     } else {
-        SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] &= ~(1 << (y % 8));
+        SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] &= ~(1u << (y % 8u));
     }
 }
 
 // Draw 1 char to the screen buffer
-// ch         => char om weg te schrijven
-// Font     => Font waarmee we gaan schrijven
+// ch        => char om weg te schrijven
+// Font      => Font waarmee we gaan schrijven
 // color     => Black or White
 char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
     uint32_t i, b, j;
@@ -242,11 +228,8 @@ char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
     for (i = 0; i < Font.FontHeight; i++) {
         b = Font.data[(ch - 32) * Font.FontHeight + i];
         for (j = 0; j < Font.FontWidth; j++) {
-            if ((b << j) & 0x8000) {
-                ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) color);
-            } else {
-                ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) !color);
-            }
+            ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) (((b << j) & 0x8000u) !=
+                                                                                             0 == color));
         }
     }
 
