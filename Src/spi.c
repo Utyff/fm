@@ -4,7 +4,7 @@
 /**
   * @brief  This function :
   *           - Enables GPIO clock
-  *           - Configures the SPI1 pins on GPIO PA4 PA5 PA6 PA7
+  *           - Configures the SPI1 pins on GPIO PA5 PA7
   */
 void Configure_GPIO_SPI1(void) {
     // Enable the peripheral clock of GPIOA

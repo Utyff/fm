@@ -61,6 +61,7 @@
 extern I2C_HandleTypeDef SSD1306_I2C_PORT;
 #elif defined(SSD1306_USE_SPI)
 //extern SPI_HandleTypeDef SSD1306_SPI_PORT;
+#define SPI_Port SPI1
 #else
 #error "You should define SSD1306_USE_SPI or SSD1306_USE_I2C macro!"
 #endif

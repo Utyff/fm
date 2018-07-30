@@ -2,10 +2,15 @@
 #include "spi.h"
 #include "main.h"
 
-#define CS_SET()
-#define CS_RESET()
-#define DC_SET()
-#define DC_RESET()
+#define CS_Pin GPIO_IDR_1
+#define CS_GPIO_Port GPIOB
+#define DC_Pin GPIO_IDR_6
+#define DC_GPIO_Port GPIOA
+
+#define CS_SET()   CS_GPIO_Port->ODR ^= GPIO_ODR_1
+#define CS_RESET() CS_GPIO_Port->ODR ^= GPIO_ODR_1
+#define DC_SET()   DC_GPIO_Port->ODR ^= GPIO_ODR_6
+#define DC_RESET() DC_GPIO_Port->ODR ^= GPIO_ODR_6
 
 #if defined(SSD1306_USE_I2C)
 
@@ -78,7 +83,7 @@ void ssd1306_Init(void) {
 
     // Wait for the screen to boot
     Delay(100);
-    
+
     // Init OLED
     ssd1306_WriteCommand(0xAE); //display off
 
@@ -164,14 +169,14 @@ void ssd1306_Init(void) {
 */
     // Clear screen
     ssd1306_Fill(Black);
-    
+
     // Flush buffer to screen
     ssd1306_UpdateScreen();
-    
+
     // Set default values for screen object
     SSD1306.CurrentX = 0;
     SSD1306.CurrentY = 0;
-    
+
     SSD1306.Initialized = 1;
 }
 
@@ -214,7 +219,7 @@ void ssd1306_DrawPixel(uint8_t x, uint8_t y, SSD1306_COLOR color) {
     // Draw in the right color
     if(color == White) {
         SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1 << (y % 8);
-    } else { 
+    } else {
         SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] &= ~(1 << (y % 8));
     }
 }
@@ -225,7 +230,7 @@ void ssd1306_DrawPixel(uint8_t x, uint8_t y, SSD1306_COLOR color) {
 // color     => Black or White
 char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
     uint32_t i, b, j;
-    
+
     // Check remaining space on current line
     if (SSD1306_WIDTH <= (SSD1306.CurrentX + Font.FontWidth) ||
         SSD1306_HEIGHT <= (SSD1306.CurrentY + Font.FontHeight))
@@ -233,7 +238,7 @@ char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
         // Not enough space on current line
         return 0;
     }
-    
+
     // Use the font to write
     for(i = 0; i < Font.FontHeight; i++) {
         b = Font.data[(ch - 32) * Font.FontHeight + i];
@@ -245,10 +250,10 @@ char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color) {
             }
         }
     }
-    
+
     // The current space is now taken
     SSD1306.CurrentX += Font.FontWidth;
-    
+
     // Return written char for validation
     return ch;
 }
@@ -261,11 +266,11 @@ char ssd1306_WriteString(char* str, FontDef Font, SSD1306_COLOR color) {
             // Char could not be written
             return *str;
         }
-        
+
         // Next char
         str++;
     }
-    
+
     // Everything ok
     return *str;
 }

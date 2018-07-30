@@ -1,8 +1,5 @@
 #include "stm32f0xx.h"
 #include <rda5807m.h>
-#include <spi.h>
-#include <ssd1306_tests.h>
-#include <ssd1306.h>
 #include "main.h"
 
 
@@ -21,7 +18,7 @@ void Configure_USART2(void);
 
 
 uint8_t send = 0;
-uint8_t stringtosend[32] = "STm\n";
+uint8_t string2send[32] = "STm\n";
 uint32_t stick = 0;
 uint32_t Tickstart; // operation start time. For detect timeout
 
@@ -38,7 +35,8 @@ int main(void) {
     Configure_SPI1();
 
     rda5807_init();
-    ssd1306_Init();
+
+    //ssd1306_Init();
     ssd1306_TestAll();
 
     LED1_TOGGLE();
@@ -186,18 +184,21 @@ void EXTI0_1_IRQHandler(void) {
   */
 void USART2_IRQHandler(void) {
     if ((USART2->ISR & USART_ISR_TC) == USART_ISR_TC) {
-        if (stringtosend[send] == 0) {
+        if (string2send[send] == 0) {
             send = 0;
             USART2->ICR |= USART_ICR_TCCF; // Clear transfer complete flag
         } else {
             // clear transfer complete flag and fill TDR with a new char
-            USART2->TDR = stringtosend[send++];
+            USART2->TDR = string2send[send++];
         }
     } else {
         NVIC_DisableIRQ(USART2_IRQn); // Disable USART2_IRQn
     }
 }
 
+/**
+ * @param delay in milliseconds
+ */
 void Delay(uint32_t delay) {
     uint32_t start = stick;
     while (stick - start < delay);
@@ -228,11 +229,12 @@ void prints(const char *str) {
     // wait till end current transmission
     while (send != 0);
 
-    _strcpy(stringtosend, (uint8_t *) str);
+    _strcpy(string2send, (uint8_t *) str);
     // start USART transmission. Will initiate TC if TXE
-    USART2->TDR = stringtosend[send++];
+    USART2->TDR = string2send[send++];
 }
 
+#pragma clang diagnostic ignored "-Wunused-parameter"
 /**
   * @brief  This function is executed in case of error occurrence.
   * @param  file: The file name as string.
