@@ -7,10 +7,10 @@
 #define DC_Pin GPIO_IDR_6
 #define DC_GPIO_Port GPIOA
 
-#define CS_SET()   CS_GPIO_Port->ODR ^= GPIO_ODR_1
-#define CS_RESET() CS_GPIO_Port->ODR ^= GPIO_ODR_1
-#define DC_SET()   DC_GPIO_Port->ODR ^= GPIO_ODR_6
-#define DC_RESET() DC_GPIO_Port->ODR ^= GPIO_ODR_6
+#define CS_SET()   CS_GPIO_Port->BSRR = CS_Pin
+#define CS_RESET() CS_GPIO_Port->BRR  = CS_Pin
+#define DC_SET()   DC_GPIO_Port->BSRR = DC_Pin
+#define DC_RESET() DC_GPIO_Port->BRR  = DC_Pin
 
 #if defined(SSD1306_USE_I2C)
 

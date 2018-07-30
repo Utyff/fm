@@ -1,5 +1,8 @@
 #include "stm32f0xx.h"
 #include <rda5807m.h>
+#include <spi.h>
+#include <ssd1306_tests.h>
+#include <ssd1306.h>
 #include "main.h"
 
 
