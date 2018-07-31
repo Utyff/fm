@@ -53,7 +53,10 @@ int main(void) {
         prints("\n\rtuned freq: ");
         printi(rda5807_GetFreq_In100Khz());
 
-        Delay(300);
+        uint32_t start = stick;
+        while (stick - start < 300) {
+            Enumerate(0);
+        }
     }
 }
 

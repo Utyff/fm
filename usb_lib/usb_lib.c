@@ -1,8 +1,8 @@
 #include "usb_lib.h"
 
-uint8_t set_featuring;
-uint16_t tx_len;
-uint8_t *tx_message, tx_num;
+//uint8_t set_featuring;
+//uint16_t tx_len;
+//uint8_t *tx_message, tx_num;
 
 usb_dev_t USB_Dev;
 ep_t endpoints[MAX_ENDPOINTS];

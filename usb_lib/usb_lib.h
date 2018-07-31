@@ -91,7 +91,7 @@ typedef struct {
 	uint16_t USB_Addr;
 } usb_dev_t;
 
-extern ep_t endpoints[MAX_ENDPOINTS];
+//extern ep_t endpoints[MAX_ENDPOINTS];
 
 //Инициализация USB
 void USB_Init();
