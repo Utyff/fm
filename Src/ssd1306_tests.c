@@ -80,8 +80,8 @@ void ssd1306_TestFPS() {
 
 void ssd1306_TestAll() {
     ssd1306_Init();
-    ssd1306_TestFPS();
-    Delay(3000);
-    ssd1306_TestBorder();
+//    ssd1306_TestFPS();
+    Delay(300);
+//    ssd1306_TestBorder();
     ssd1306_TestFonts();
 }
