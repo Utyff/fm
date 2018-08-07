@@ -1,0 +1,4 @@
+
+Port_#0002.Hub_#0002	SOB inc. Mass Storage USB Device	Mass Storage	No	No	No	No		12345678	31-Jul-18 19:47:04	17-Jul-18 02:06:27	0483	5711	0.01	08	06	50		COMPUTER				USBSTOR	@usbstor.inf,%USBSTOR.SvcDesc%;USB Mass Storage Driver	USBSTOR.SYS		Compatible USB storage device				USB Mass Storage Device	10.0.14393.1378	USBSTOR_BULK.NT	usbstor.inf	USB\VID_0483&PID_5711\12345678	Removable, UniqueID
+
+0000.0014.0000.002.000.000.000.000.000	STMicroelectronics STLink Virtual COM Port	Communication	No	Yes	No	No	COM4		04-Aug-18 00:59:51	08-Jul-18 03:17:46	0483	374b	1.00	02	02	01		COMPUTER				usbser	@usbser.inf,%UsbSerial.DriverDesc%;Microsoft USB Serial Driver	usbser.sys		STMicroelectronics	STMicroelectronics STLink Virtual COM Port (COM4)			STMicroelectronics STLink Virtual COM Port	1.0.0.0	USB_InstallVCP	oem18.inf	USB\VID_0483&PID_374B&MI_02\6&b1cd64b&0&0002	SurpriseRemovalOK

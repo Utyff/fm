@@ -1,5 +1,5 @@
 #include "main.h"
-#include "stm32f0xx_hal.h"
+#include "stm32l0xx_hal.h"
 
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart2;

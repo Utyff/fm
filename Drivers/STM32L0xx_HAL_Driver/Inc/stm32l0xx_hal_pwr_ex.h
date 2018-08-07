@@ -1,16 +1,12 @@
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    stm32l0xx_hal_pwr_ex.h
+  * @author  MCD Application Team
+  * @brief   Header file of PWR HAL Extension module.
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
+  * @attention
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,51 +34,82 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
-
-/* Includes ------------------------------------------------------------------*/
-
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private define ------------------------------------------------------------*/
-
-#define BTN1_Pin GPIO_PIN_0
-#define BTN1_GPIO_Port GPIOA
-#define BTN2_Pin GPIO_PIN_1
-#define BTN2_GPIO_Port GPIOA
-#define LED1_Pin GPIO_PIN_4
-#define LED1_GPIO_Port GPIOA
-#define OLED_DC_Pin GPIO_PIN_6
-#define OLED_DC_GPIO_Port GPIOA
-#define OLED_CS_Pin GPIO_PIN_1
-#define OLED_CS_GPIO_Port GPIOB
-#define LED2_Pin GPIO_PIN_8
-#define LED2_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
-/* #define USE_FULL_ASSERT    1U */
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
+#ifndef __STM32L0xx_HAL_PWR_EX_H
+#define __STM32L0xx_HAL_PWR_EX_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif
-void _Error_Handler(char *, int);
 
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+/* Includes ------------------------------------------------------------------*/
+#include "stm32l0xx_hal_def.h"
+
+/** @addtogroup STM32L0xx_HAL_Driver
+  * @{
+  */
+
+/** @defgroup PWREx PWREx
+  * @{
+  */
+
+/** @defgroup PWREx_Exported_Macros PWREx Exported Macros
+ * @{
+ */
+
+/** @brief  Macros to enable the Deep-sleep mode with Flash memory kept off.
+  * @note   When entering low power mode (stop or standby only), if DS_EE_KOFF and RUN_PD of
+  *         FLASH_ACR register are both set , the Flash memory will not be woken up 
+  *         when exiting from deep-sleep mode.
+  */
+#define __HAL_PWR_FLASHWAKEUP_ENABLE()      CLEAR_BIT(PWR->CR, PWR_CR_DSEEKOFF)
+
+/** @brief  Macros to disable the Deep-sleep mode with Flash memory kept off.
+  * @note   When entering low power mode (stop or standby only), if DS_EE_KOFF and RUN_PD of
+  *         FLASH_ACR register are both set , the Flash memory will not be woken up 
+  *         when exiting from deep-sleep mode.
+  */
+#define __HAL_PWR_FLASHWAKEUP_DISABLE()     SET_BIT(PWR->CR, PWR_CR_DSEEKOFF)
+/**
+  * @}
+  */
+
+/** @defgroup PWREx_Exported_Functions PWREx Exported Functions
+ * @{
+ */
+uint32_t HAL_PWREx_GetVoltageRange(void);
+void HAL_PWREx_EnableFastWakeUp(void);
+void HAL_PWREx_DisableFastWakeUp(void);
+void HAL_PWREx_EnableUltraLowPower(void);
+void HAL_PWREx_DisableUltraLowPower(void);
+void HAL_PWREx_EnableLowPowerRunMode(void);
+HAL_StatusTypeDef HAL_PWREx_DisableLowPowerRunMode(void);
+/**
+  * @}
+  */
+
+/* Define the private group ***********************************/
+/**************************************************************/
+/** @defgroup PWREx_Private PWREx Private
+  * @{
+  */
+/**
+  * @}
+  */
+/**************************************************************/
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H__ */
+#endif /* __STM32L0xx_HAL_PWR_EX_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

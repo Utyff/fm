@@ -1,16 +1,12 @@
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    stm32l0xx_hal_flash_ramfunc.h
+  * @author  MCD Application Team
+  * @brief   Header file of FLASH RAMFUNC driver.
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
+  * @attention
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -35,54 +31,94 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+  */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
-
-/* Includes ------------------------------------------------------------------*/
-
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private define ------------------------------------------------------------*/
-
-#define BTN1_Pin GPIO_PIN_0
-#define BTN1_GPIO_Port GPIOA
-#define BTN2_Pin GPIO_PIN_1
-#define BTN2_GPIO_Port GPIOA
-#define LED1_Pin GPIO_PIN_4
-#define LED1_GPIO_Port GPIOA
-#define OLED_DC_Pin GPIO_PIN_6
-#define OLED_DC_GPIO_Port GPIOA
-#define OLED_CS_Pin GPIO_PIN_1
-#define OLED_CS_GPIO_Port GPIOB
-#define LED2_Pin GPIO_PIN_8
-#define LED2_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
-/* #define USE_FULL_ASSERT    1U */
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
+#ifndef __STM32L0xx_FLASH_RAMFUNC_H
+#define __STM32L0xx_FLASH_RAMFUNC_H
 
 #ifdef __cplusplus
  extern "C" {
 #endif
-void _Error_Handler(char *, int);
 
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+/* Includes ------------------------------------------------------------------*/
+#include "stm32l0xx_hal_def.h"
+
+/** @addtogroup STM32L0xx_HAL_Driver
+  * @{
+  */
+
+/** @addtogroup FLASH_RAMFUNC
+  * @{
+  */ 
+
+/* Exported types ------------------------------------------------------------*/ 
+
+
+/* Exported functions --------------------------------------------------------*/
+
+/** @addtogroup FLASH_RAMFUNC_Exported_Functions
+  * @{
+  */
+
+/*
+  * @brief  FLASH memory functions that should be executed from internal SRAM.
+  *         These functions are defined inside the "stm32l0xx_hal_flash_ramfunc.c"
+  *         file.
+  */
+  
+/** @addtogroup FLASH_RAMFUNC_Exported_Functions_Group1
+  * @{
+  */
+
+__RAM_FUNC HAL_FLASHEx_EnableRunPowerDown(void);
+__RAM_FUNC HAL_FLASHEx_DisableRunPowerDown(void);
+
+/**
+  * @}
+  */ 
+
+/** @addtogroup FLASH_RAMFUNC_Exported_Functions_Group2
+  * @{
+  */
+
+#if defined(FLASH_PECR_PARALLBANK)
+
+__RAM_FUNC HAL_FLASHEx_EraseParallelPage(uint32_t Page_Address1, uint32_t Page_Address2);
+__RAM_FUNC HAL_FLASHEx_ProgramParallelHalfPage(uint32_t Address1, uint32_t* pBuffer1, uint32_t Address2, uint32_t* pBuffer2);
+
+#endif /* FLASH_PECR_PARALLBANK */
+
+__RAM_FUNC HAL_FLASHEx_HalfPageProgram(uint32_t Address, uint32_t* pBuffer);
+
+/**
+  * @}
+  */ 
+
+/** @addtogroup FLASH_RAMFUNC_Exported_Functions_Group3
+  * @{
+  */
+__RAM_FUNC  HAL_FLASHEx_GetError(uint32_t *Error);
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+  */ 
+
+/**
+  * @}
+  */
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H__ */
+#endif /* __STM32L0xx_FLASH_RAMFUNC_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
