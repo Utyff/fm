@@ -3,13 +3,13 @@
 uint8_t buf10[64];
 uint8_t buf11[64];
 
-
-void rda5807_init2(I2C_HandleTypeDef *I2Cx) {
-    uint8_t buf[2] = {0, 0};
-    HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 2,
-                                             RDA5807_TO);
-    printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
-}
+//
+//void rda5807_init2(I2C_HandleTypeDef *I2Cx) {
+//    uint8_t buf[2] = {0, 0};
+//    HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2Cx, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 2,
+//                                             RDA5807_TO);
+//    printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
+//}
 
 //==============================================================================
 // Инициализация rda5807

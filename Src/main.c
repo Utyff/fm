@@ -108,6 +108,7 @@ PUTCHAR_PROTOTYPE
   HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
   return ch;
 }
+char buf[150];
 
 /* USER CODE END 0 */
 
@@ -155,19 +156,20 @@ int main(void)
   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
   ssd1306_Init();
-  ssd1306_SetCursor(2, 26);
-  ssd1306_WriteString("Font 11x18", Font_11x18, White);
-  ssd1306_SetCursor(2, 26 + 18);
-  ssd1306_WriteString("Font 7x10", Font_7x10, White);
-  ssd1306_UpdateScreen();
+  HAL_Delay(500);
+  ssd1306_Fill(Black);
+//  ssd1306_TestAll();
 
   while (1) {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
     HAL_Delay(300);
-//    rda5807_init2(&hi2c1);
-    printf("tuned freq: %u \n\r", rda5807_GetFreq_In100Khz(&hi2c1));
-    CDC_Transmit_FS((uint8_t*) "ST USB. \n", 8);
+    sprintf(buf, "%u", rda5807_GetFreq_In100Khz(&hi2c1));
+//    CDC_Transmit_FS((uint8_t*) "ST USB. \n", 8);
+    ssd1306_SetCursor(2, 26);
+    ssd1306_WriteString(buf, Font_11x18, White);
+    ssd1306_UpdateScreen();
+
 
   /* USER CODE END WHILE */
 
