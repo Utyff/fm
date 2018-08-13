@@ -7,21 +7,23 @@
   */
 void i2cm_init() {
     // Enable the peripheral clock of GPIOF
-    RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
 
     // (1) open drain for I2C1 signals
     // (2) AF1 for I2C1 signals
-    // (3) Select AF mode (10) on PF0 and PF1
-    GPIOF->OTYPER |= GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1; // (1)
-    GPIOF->AFR[0] = (GPIOF->AFR[0] & ~(GPIO_AFRL_AFRL0 | GPIO_AFRL_AFRL1))
-                    | (1u << (0u * 4)) | (1u << (1u * 4)); // (2)
-    GPIOF->MODER = (GPIOF->MODER & ~(GPIO_MODER_MODER0 | GPIO_MODER_MODER1))
-                   | (GPIO_MODER_MODER0_1 | GPIO_MODER_MODER1_1); // (3)
+    // (3) Select AF mode (10) on PB6 and PB7
+    GPIOB->OTYPER |= GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1; // (1)
+    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7))
+                    | (1u << (6u * 4)) | (1u << (7u * 4)); // (2)
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE0 | GPIO_MODER_MODE1))
+                   | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1); // (3)
 
     // Enable the peripheral clock I2C1
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
     // Use SysClk for I2C CLK
-    RCC->CFGR3 |= RCC_CFGR3_I2C1SW;
+//    RCC->CFGR3 |= RCC_CFGR3_I2C1SW;  TODO
+    // Use APBCLK for I2C CLK
+    RCC->CCIPR &= ~RCC_CCIPR_I2C1SEL;
 
     // Configure I2C1, master
     // (1) Timing register value is computed with the AN4235 xls file,

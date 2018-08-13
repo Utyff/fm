@@ -2,10 +2,10 @@
 #define __SSD1306_H__
 
 #define SSD1306_USE_SPI
-#define STM32F0
+#define STM32L0
 
-#if defined(STM32F0)
-#include "stm32f0xx.h"
+#if defined(STM32L0)
+#include "stm32l0xx.h"
 #elif defined(STM32F1)
 #include "stm32f1xx_hal.h"
 #elif defined(STM32F4)

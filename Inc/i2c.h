@@ -1,7 +1,7 @@
 #ifndef FM_I2C_H
 #define FM_I2C_H
 
-#include "stm32f0xx.h"
+#include "stm32l0xx.h"
 
 // Константы, обозначающие ошибки при чтении RAM из mlx9061x
 #define I2C_Ok         0

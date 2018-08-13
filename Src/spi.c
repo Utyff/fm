@@ -8,18 +8,18 @@
   */
 void Configure_GPIO_SPI1(void) {
     // Enable the peripheral clock of GPIOA
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
 
     // Select output mode (01) on PA6 for DC and PB1 for CS
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER6)) | (GPIO_MODER_MODER6_0);
-    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER1)) | (GPIO_MODER_MODER1_0);
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE6)) | (GPIO_MODER_MODE6_0);
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE1)) | (GPIO_MODER_MODE1_0);
 
     // (1) Select AF mode (10) on PA5, PA7
     // (2) AF0 for SPI1 signals
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER5 | GPIO_MODER_MODER7)) |
-                   (GPIO_MODER_MODER5_1 | GPIO_MODER_MODER7_1); // (1)
-    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL5 | GPIO_AFRL_AFRL7)); // (2)
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE5 | GPIO_MODER_MODE7)) |
+                   (GPIO_MODER_MODE5_1 | GPIO_MODER_MODE7_1); // (1)
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL5 | GPIO_AFRL_AFRL7)); // (2) */
 }
 
 /**
@@ -42,7 +42,7 @@ void Configure_SPI1(void) {
     SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_SSI | SPI_CR1_BIDIMODE | SPI_POLARITY_LOW
                 | SPI_PHASE_1EDGE | SPI_CR1_SSM | SPI_BAUDRATEPRESCALER_8 | SPI_FIRSTBIT_MSB;
     // Configure : NSS management, TI Mode, NSS Pulse, Data size and Rx Fifo Threshold
-    SPI1->CR2 = SPI_CR2_NSSP | SPI_DATASIZE_8BIT;
+// TODO    SPI1->CR2 = SPI_CR2_NSSP | SPI_DATASIZE_8BIT;
     SPI1->CR1 |= SPI_CR1_SPE; // (3)
 }
 

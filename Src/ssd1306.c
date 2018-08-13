@@ -2,9 +2,9 @@
 #include "spi.h"
 #include "main.h"
 
-#define CS_Pin GPIO_IDR_1
+#define CS_Pin GPIO_IDR_ID1
 #define CS_GPIO_Port GPIOB
-#define DC_Pin GPIO_IDR_6
+#define DC_Pin GPIO_IDR_ID6
 #define DC_GPIO_Port GPIOA
 
 #define CS_SET()   CS_GPIO_Port->BSRR = CS_Pin

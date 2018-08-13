@@ -1,4 +1,4 @@
-#include "stm32f0xx.h"
+#include "stm32l0xx.h"
 #include <rda5807m.h>
 #include <spi.h>
 #include <ssd1306_tests.h>
@@ -68,12 +68,12 @@ int main(void) {
   */
 __INLINE void Configure_GPIO_LED(void) {
     // Enable the peripheral clock of GPIOA
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
 
     // Select output mode (01) on PA4 and PB8
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER4)) | (GPIO_MODER_MODER4_0);
-    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODER8)) | (GPIO_MODER_MODER8_0);
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE4)) | (GPIO_MODER_MODE4_0);
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE8)) | (GPIO_MODER_MODE8_0);
 }
 
 /**
@@ -83,7 +83,7 @@ __INLINE void Configure_GPIO_LED(void) {
   */
 __INLINE void Configure_GPIO_Button(void) {
     // Enable the peripheral clock of GPIOA
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 
     // Select mode
     // Select input mode (00) on PA0
@@ -97,13 +97,13 @@ __INLINE void Configure_GPIO_Button(void) {
   */
 __INLINE void Configure_GPIO_USART2(void) {
     // Enable the peripheral clock of GPIOA
-    RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 
     // GPIO configuration for USART2 signals
     // (1) Select AF mode (10) on PA2 and PA3
     // (2) AF1 for USART2 signals
-    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER2 | GPIO_MODER_MODER3))
-                   | (GPIO_MODER_MODER2_1 | GPIO_MODER_MODER3_1); // (1)
+    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE2 | GPIO_MODER_MODE3))
+                   | (GPIO_MODER_MODE2_1 | GPIO_MODER_MODE3_1); // (1)
     GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3))
                     | (1u << (2u * 4)) | (1u << (3u * 4)); // (2)
 }

@@ -1,7 +1,7 @@
 #ifndef _RDA5807_H
 #define _RDA5807_H
 
-#include "stm32f0xx.h"
+#include "stm32l0xx.h"
 #include "i2c.h"
 
 #define RDA5807_SeqAccess_Addr  0x10u

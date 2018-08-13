@@ -168,9 +168,9 @@ void EP_Init(uint8_t number, uint8_t type, uint16_t addr_tx, uint16_t addr_rx){
 void USB_Init(){
 	RCC -> APB1ENR |= RCC_APB1ENR_USBEN;
 	RCC -> APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-	RCC -> AHBENR |= RCC_AHBENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 	//Ремапим ноги с USB
-	SYSCFG -> CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
+//	SYSCFG -> CFGR1 |= SYSCFG_CFGR1_PA11_PA12_RMP;
 	//Разрешаем прерывания по RESET и CTRM
 	USB -> CNTR = USB_CNTR_RESETM | USB_CNTR_CTRM;
 	//Сбрасываем флаги

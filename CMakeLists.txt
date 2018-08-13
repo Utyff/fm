@@ -12,7 +12,7 @@ set(OBJCOPY arm-none-eabi-objcopy)
 set(OBJDUMP arm-none-eabi-objdump)
 set(SIZE arm-none-eabi-size)
 
-SET(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F042F6Px_FLASH.ld)
+SET(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32L052K8Ux_FLASH.ld)
 
 SET(COMMON_FLAGS "-mcpu=cortex-m0 ${FPU_FLAGS} -mthumb -mthumb-interwork -ffunction-sections -fdata-sections -g -fno-common -fmessage-length=0 -specs=nosys.specs -specs=nano.specs")
 
@@ -23,11 +23,11 @@ SET(CMAKE_EXE_LINKER_FLAGS_INIT "-Wl,-gc-sections,--print-memory-usage -T ${LINK
 PROJECT(fm C ASM)
 set(CMAKE_CXX_STANDARD 11)
 
-add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DSTM32F042x6)
+add_definitions(-D__weak=__attribute__\(\(weak\)\) -D__packed=__attribute__\(\(__packed__\)\) -DSTM32L052xx )
 
 file(GLOB_RECURSE SOURCES "startup/*.*" "Drivers/*.*" "Src/*.*" "Inc/*.*" "usb_lib/*.c")
 
-include_directories(Inc Drivers/CMSIS/Device/ST/STM32F0xx/Include Drivers/CMSIS/Include usb_lib)
+include_directories(Inc Drivers/CMSIS/Device/ST/STM32L0xx/Include Drivers/CMSIS/Include usb_lib)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
