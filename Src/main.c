@@ -54,7 +54,7 @@
 /* USER CODE BEGIN Includes */
 #include <usbd_cdc_if.h>
 #include "rda5807.h"
-#include "ssd1306_tests.h"
+#include <ssd1306.h>
 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -154,7 +154,12 @@ int main(void)
   rda5807_init(&hi2c1);
   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
-  ssd1306_TestAll();
+  ssd1306_Init();
+  ssd1306_SetCursor(2, 26);
+  ssd1306_WriteString("Font 11x18", Font_11x18, White);
+  ssd1306_SetCursor(2, 26 + 18);
+  ssd1306_WriteString("Font 7x10", Font_7x10, White);
+  ssd1306_UpdateScreen();
 
   while (1) {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
