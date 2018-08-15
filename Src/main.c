@@ -9,6 +9,7 @@
 
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
+void SetClocks();
 
 void Configure_GPIO_LED(void);
 
@@ -28,7 +29,7 @@ uint32_t Tickstart; // operation start time. For detect timeout
 
 
 int main(void) {
-
+    SetClocks();
     SysTick_Config(48000);
     Configure_GPIO_LED();
     Configure_GPIO_Button();
@@ -58,6 +59,46 @@ int main(void) {
             Enumerate(0);
         }
     }
+}
+
+uint32_t hsiSetTime;
+uint32_t hsi48SetTime;
+uint32_t pllSetTime;
+uint32_t sysclkSetTime;
+
+void SetClocks() {
+// ==============  HSI
+    RCC->CR |= RCC_CR_HSION;
+    hsiSetTime = 0;
+    while (RCC->CR & RCC_CR_HSIRDY == RESET) hsiSetTime++;
+
+// ============== HSI48
+    SET_BIT(RCC->CRRCR, RCC_CRRCR_HSI48ON);
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+    hsi48SetTime = 0;
+    while (RCC->CRRCR & RCC_CRRCR_HSI48RDY == RESET) hsi48SetTime++;
+
+// ============== PLL
+    RCC->CFGR |= RCC_CFGR_PLLSRC_HSI | RCC_CFGR_PLLMUL4 | RCC_CFGR_PLLDIV2;
+    // Enable the main PLL.
+    SET_BIT(RCC->CR, RCC_CR_PLLON);
+    pllSetTime = 0;
+    // Wait till PLL is ready
+    while (RCC->CR & RCC_CR_PLLRDY == RESET) pllSetTime++;
+
+// ============== FLASH
+    FLASH->ACR |= FLASH_ACR_LATENCY;
+    // Check that the new number of wait states is taken into account to access the Flash
+    // memory by reading the FLASH_ACR register
+    if ((FLASH->ACR & FLASH_ACR_LATENCY) == RESET) { Error_Handler(); }
+
+// ============== HCLK
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+
+// ============== SYSCLK
+    RCC->CFGR |= RCC_CFGR_SW_PLL;
+    sysclkSetTime = 0;
+    while (RCC->CFGR & RCC_CFGR_SWS != RCC_CFGR_SWS_PLL) sysclkSetTime++;
 }
 
 /**

@@ -1,0 +1,134 @@
+
+// ==============  HSI
+
+uint32_t hsiSetTime;
+        // Enable the Internal High Speed oscillator (HSI or HSIdiv4)
+        //__HAL_RCC_HSI_CONFIG(RCC_OscInitStruct->HSIState);
+//#define __HAL_RCC_HSI_CONFIG(__STATE__) \
+//                  MODIFY_REG(RCC->CR, RCC_CR_HSION | RCC_CR_HSIDIVEN , (uint32_t)(__STATE__))
+        RCC->CR |= RCC_CR_HSION;
+
+        
+        // Get Start Tick
+        //tickstart = HAL_GetTick();
+        
+        // Wait till HSI is ready
+        //while(__HAL_RCC_GET_FLAG(RCC_FLAG_HSIRDY) == RESET)
+
+        hsiSetTime = 0;        
+        while(RCC->CR & RCC_CR_HSIRDY == RESET) {
+            hsiSetTime++;
+        }
+                
+        // Adjusts the Internal High Speed oscillator (HSI) calibration value.
+        // __HAL_RCC_HSI_CALIBRATIONVALUE_ADJUST(RCC_OscInitStruct->HSICalibrationValue); // 16
+
+
+// ============== HSI48
+
+uint32_t hsi48SetTime;
+
+        // Enable the Internal High Speed oscillator (HSI48).
+//#define __HAL_RCC_HSI48_ENABLE()  do { SET_BIT(RCC->CRRCR, RCC_CRRCR_HSI48ON);            \
+//                                       SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);       \
+//                                       SET_BIT(SYSCFG->CFGR3, SYSCFG_CFGR3_ENREF_HSI48);  \
+//                                  } while (0)
+        SET_BIT(RCC->CRRCR, RCC_CRRCR_HSI48ON);     
+        SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+
+        // Get Start Tick
+        //tickstart = HAL_GetTick();
+        hsi48SetTime = 0;
+      
+        // Wait till HSI48 is ready
+        //while(__HAL_RCC_GET_FLAG(RCC_FLAG_HSI48RDY) == RESET)
+        while( RCC->CRRCR & RCC_CRRCR_HSI48RDY == RESET )  {
+            hsi48SetTime++;
+        } 
+
+
+// ============== PLL
+uint32_t pllSetTime;
+
+        //__HAL_RCC_PLL_DISABLE();
+        
+        // Get Start Tick
+        //tickstart = HAL_GetTick();
+        
+        // Wait till PLL is disabled
+        //while(__HAL_RCC_GET_FLAG(RCC_FLAG_PLLRDY)  != RESET)
+        //{
+        //  if((HAL_GetTick() - tickstart ) > PLL_TIMEOUT_VALUE)
+        //  {
+        //    return HAL_TIMEOUT;
+        //  }
+        //}
+
+        // Configure the main PLL clock source, multiplication and division factors.
+        //__HAL_RCC_PLL_CONFIG(RCC_OscInitStruct->PLL.PLLSource,
+        //                     RCC_OscInitStruct->PLL.PLLMUL,
+        //                     RCC_OscInitStruct->PLL.PLLDIV);
+//#define __HAL_RCC_PLL_CONFIG(__RCC_PLLSOURCE__, __PLLMUL__, __PLLDIV__)\
+//          MODIFY_REG(RCC->CFGR, (RCC_CFGR_PLLSRC|RCC_CFGR_PLLMUL|RCC_CFGR_PLLDIV),((__RCC_PLLSOURCE__) | (__PLLMUL__) | (__PLLDIV__)))
+        RCC->CFGR |= RCC_CFGR_PLLSRC_HSI | RCC_CFGR_PLLMUL4 | RCC_CFGR_PLLDIV2;
+
+
+        // Enable the main PLL.
+        //__HAL_RCC_PLL_ENABLE();
+        SET_BIT(RCC->CR, RCC_CR_PLLON);
+        
+        // Get Start Tick
+        //tickstart = HAL_GetTick();
+        pllSetTime = 0;
+        
+        // Wait till PLL is ready
+        //while(__HAL_RCC_GET_FLAG(RCC_FLAG_PLLRDY)  == RESET)
+        while(RCC->CR & RCC_CR_PLLRDY == RESET) {
+          pllSetTime++;
+        }
+
+// ============== FLASH
+
+    // Program the new number of wait states to the LATENCY bits in the FLASH_ACR register
+    //__HAL_FLASH_SET_LATENCY(FLatency);
+//#define __HAL_FLASH_SET_LATENCY(__LATENCY__) \
+//                  MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, (uint32_t)(__LATENCY__))
+    FLASH->ACR |= FLASH_ACR_LATENCY;
+    
+    // Check that the new number of wait states is taken into account to access the Flash
+    //memory by reading the FLASH_ACR register
+    if((FLASH->ACR & FLASH_ACR_LATENCY) == RESET) {
+      return ERROR;
+    }
+
+// ============== HCLK
+
+  // HCLK Configuration
+  RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+
+
+// ============== SYSCLK
+
+    // SYSCLK Configuration
+    //__HAL_RCC_SYSCLK_CONFIG(RCC_ClkInitStruct->SYSCLKSource);
+    RCC->CFGR |= RCC_CFGR_SW_PLL;
+
+    //while (__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_SYSCLKSOURCE_STATUS_PLLCLK)
+    while ( RCC->CFGR & RCC_CFGR_SWS != RCC_CFGR_SWS_PLL ) {
+      setTime++;
+    }
+
+// ============== FLASH
+
+    //__HAL_FLASH_SET_LATENCY(FLatency);
+
+// ============== PCLK 1 & 2
+
+//    MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE1, RCC_ClkInitStruct->APB1CLKDivider);
+//    MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE2, ((RCC_ClkInitStruct->APB2CLKDivider) << 3));
+
+// ============== Get SysClk
+
+//  SystemCoreClock = HAL_RCC_GetSysClockFreq() >> AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE)>> RCC_CFGR_HPRE_BITNUMBER];
+
+// ==============
