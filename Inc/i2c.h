@@ -11,7 +11,7 @@
 
 
 // Процедура инициализации i2c (I2C1 или I2C2) в режиме master с заданной частотой интерфейса
-void i2cm_init();
+void i2c_init();
 
 // Функция стартует обмен. Выдаёт условие START, выдаёт адрес слейва с признаком R/W
 int8_t i2cm_Start(uint8_t slave_addr, uint8_t IsRead);

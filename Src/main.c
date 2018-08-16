@@ -30,20 +30,20 @@ uint32_t Tickstart; // operation start time. For detect timeout
 
 int main(void) {
     SetClocks();
-    SysTick_Config(48000);
+    SysTick_Config(32000);
     Configure_GPIO_LED();
-    Configure_GPIO_Button();
-    Configure_EXTI();
-    Configure_GPIO_USART2();
-    Configure_USART2();
-    Configure_GPIO_SPI1();
-    Configure_SPI1();
-    USB_Init();
-
+//    Configure_GPIO_Button();
+//    Configure_EXTI();
+//    Configure_GPIO_USART2();
+//    Configure_USART2();
+//    Configure_GPIO_SPI1();
+//    Configure_SPI1();
+//    USB_Init();
+//
     rda5807_init();
-
-    //ssd1306_Init();
-    ssd1306_TestAll();
+//
+//    ssd1306_Init();
+//    ssd1306_TestAll();
 
     LED1_TOGGLE();
 
@@ -51,12 +51,12 @@ int main(void) {
         LED1_TOGGLE();
         LED2_TOGGLE();
 
-        prints("\n\rtuned freq: ");
-        printi(rda5807_GetFreq_In100Khz());
+//        prints("\n\rtuned freq: ");
+//        printi(rda5807_GetFreq_In100Khz());
 
         uint32_t start = stick;
         while (stick - start < 300) {
-            Enumerate(0);
+//            Enumerate(0);
         }
     }
 }

@@ -5,7 +5,7 @@
 /**
   * Процедура инициализации I2C1 в режиме master с частотой интерфейса 100KHz
   */
-void i2cm_init() {
+void i2c_init() {
     // Enable the peripheral clock of GPIOF
     RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
 

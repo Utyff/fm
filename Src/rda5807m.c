@@ -11,7 +11,7 @@ uint8_t buf11[64];
 void rda5807_init() {
     uint8_t buf[2] = {0, 0};
 
-    i2cm_init();
+    i2c_init();
     uint8_t err = I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, 0, buf, 2);
 
     //HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
