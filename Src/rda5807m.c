@@ -12,6 +12,7 @@ void rda5807_init() {
     uint8_t buf[2] = {0, 0};
 
     i2c_init();
+    return;
     uint8_t err = I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, 0, buf, 2);
 
     //HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
@@ -175,7 +176,7 @@ void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
     //i2cm_Stop(I2Cx, RDA5807_TO);
 
     if (I2C_Mem_Write(RDA5807_RandAccess_Addr << 1u, RegAddr, (uint8_t *) pBuff, RegNum << 1u)) {
-        Error_Handler();
+        return; //Error_Handler();
     }
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);

@@ -39,9 +39,7 @@ int main(void) {
 //    Configure_GPIO_SPI1();
 //    Configure_SPI1();
 //    USB_Init();
-//
-    rda5807_init();
-//
+//    rda5807_init();
 //    ssd1306_Init();
 //    ssd1306_TestAll();
 
@@ -57,6 +55,7 @@ int main(void) {
         uint32_t start = stick;
         while (stick - start < 300) {
 //            Enumerate(0);
+//            rda5807_SoftReset();
         }
     }
 }
@@ -107,7 +106,7 @@ void SetClocks() {
              - Configures the Green LED pin on GPIO PA4
              - Configures the orange LED pin on GPIO PB8
   */
-__INLINE void Configure_GPIO_LED(void) {
+void Configure_GPIO_LED(void) {
     // Enable the peripheral clock of GPIOA
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
     RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
@@ -122,7 +121,7 @@ __INLINE void Configure_GPIO_LED(void) {
              - Enables GPIO clock
              - Configures the Push Button GPIO PA0
   */
-__INLINE void Configure_GPIO_Button(void) {
+void Configure_GPIO_Button(void) {
     // Enable the peripheral clock of GPIOA
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 
@@ -136,7 +135,7 @@ __INLINE void Configure_GPIO_Button(void) {
              - Enables GPIO clock
              - Configures the USART2 pins on GPIO PB6 PB7
   */
-__INLINE void Configure_GPIO_USART2(void) {
+void Configure_GPIO_USART2(void) {
     // Enable the peripheral clock of GPIOA
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 
@@ -152,7 +151,7 @@ __INLINE void Configure_GPIO_USART2(void) {
 /**
   * @brief  This function configures USART2.
   */
-__INLINE void Configure_USART2(void) {
+void Configure_USART2(void) {
     // Enable the peripheral clock USART2
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
@@ -180,7 +179,7 @@ __INLINE void Configure_USART2(void) {
 /**
   * @brief  This function configures EXTI.
   */
-__INLINE void Configure_EXTI(void) {
+void Configure_EXTI(void) {
     // Configure Syscfg, exti and nvic for pushbutton PA0
     // (1) PA0 as source input
     // (2) unmask port 0
