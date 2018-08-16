@@ -156,15 +156,12 @@ int main(void)
   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
   ssd1306_Init();
-  HAL_Delay(500);
-  ssd1306_Fill(Black);
-//  ssd1306_TestAll();
 
   while (1) {
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
     HAL_Delay(300);
-    sprintf(buf, "%u", rda5807_GetFreq_In100Khz(&hi2c1));
+    sprintf(buf, "freq: %u", rda5807_GetFreq_In100Khz(&hi2c1));
 //    CDC_Transmit_FS((uint8_t*) "ST USB. \n", 8);
     ssd1306_SetCursor(2, 26);
     ssd1306_WriteString(buf, Font_11x18, White);
