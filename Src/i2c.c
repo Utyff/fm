@@ -4,33 +4,32 @@
 
 /**
   * Процедура инициализации I2C1 в режиме master с частотой интерфейса 100KHz
+  * PB6 - I2C1_SCL
+  * PB7 - I2C1_SDA
   */
 void i2c_init() {
-    // Enable the peripheral clock of GPIOF
+    // Enable the peripheral clock of GPIOB
     RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
 
-    // (1) open drain for I2C1 signals
-    // (2) AF1 for I2C1 signals
-    // (3) Select AF mode (10) on PB6 and PB7
-    GPIOB->OTYPER |= GPIO_OTYPER_OT_0 | GPIO_OTYPER_OT_1; // (1)
+    // open drain for I2C1 signals for PB6 and PB7
+    GPIOB->OTYPER |= GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7;
+    // AF1 for I2C1 signals for PB6 and PB7
     GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7))
-                    | (1u << (6u * 4)) | (1u << (7u * 4)); // (2)
+                    | (1u << (6u * 4)) | (1u << (7u * 4));
+    // Select AF mode (10) on PB6 and PB7
     GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE0 | GPIO_MODER_MODE1))
-                   | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1); // (3)
+                   | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1);
 
     // Enable the peripheral clock I2C1
     RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
-    // Use SysClk for I2C CLK
-//    RCC->CFGR3 |= RCC_CFGR3_I2C1SW;  TODO
     // Use APBCLK for I2C CLK
     RCC->CCIPR &= ~RCC_CCIPR_I2C1SEL;
 
     // Configure I2C1, master
-    // (1) Timing register value is computed with the AN4235 xls file,
     // fast Mode @100kHz with I2CCLK = 32MHz, rise time = 0ns, fall time = 0ns
-    // (2) Periph enable
-    I2C1->TIMINGR = 0x00707CBBu; // 100khz 0ms 0ms  // 0x00B01A4B; // (1)
-    I2C1->CR1 = I2C_CR1_PE; // (2)
+    I2C1->TIMINGR = 0x00707CBBu;
+    // Periph enable
+    I2C1->CR1 = I2C_CR1_PE;
 }
 
 // ======== HAL ==========
