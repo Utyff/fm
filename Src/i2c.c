@@ -27,9 +27,9 @@ void i2c_init() {
 
     // Configure I2C1, master
     // (1) Timing register value is computed with the AN4235 xls file,
-    // fast Mode @100kHz with I2CCLK = 48MHz, rise time = 140ns, fall time = 40ns
+    // fast Mode @100kHz with I2CCLK = 32MHz, rise time = 0ns, fall time = 0ns
     // (2) Periph enable
-    I2C1->TIMINGR = (uint32_t) 0x20303E5D; // 100khz 0ms 0ms  // 0x00B01A4B; // (1)
+    I2C1->TIMINGR = 0x00707CBBu; // 100khz 0ms 0ms  // 0x00B01A4B; // (1)
     I2C1->CR1 = I2C_CR1_PE; // (2)
 }
 
