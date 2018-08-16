@@ -17,7 +17,7 @@ void i2c_init() {
     GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7))
                     | (1u << (6u * 4)) | (1u << (7u * 4));
     // Select AF mode (10) on PB6 and PB7
-    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE0 | GPIO_MODER_MODE1))
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7))
                    | (GPIO_MODER_MODE6_1 | GPIO_MODER_MODE7_1);
 
     // Enable the peripheral clock I2C1
@@ -29,7 +29,7 @@ void i2c_init() {
     // fast Mode @100kHz with I2CCLK = 32MHz, rise time = 0ns, fall time = 0ns
     I2C1->TIMINGR = 0x00707CBBu;
     // Periph enable
-    I2C1->CR1 = I2C_CR1_PE;
+    I2C1->CR1 |= I2C_CR1_PE;
 }
 
 // ======== HAL ==========

@@ -39,7 +39,7 @@ int main(void) {
 //    Configure_GPIO_SPI1();
 //    Configure_SPI1();
 //    USB_Init();
-//    rda5807_init();
+    rda5807_init();
 //    ssd1306_Init();
 //    ssd1306_TestAll();
 

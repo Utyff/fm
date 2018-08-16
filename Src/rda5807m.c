@@ -12,16 +12,16 @@ void rda5807_init() {
     uint8_t buf[2] = {0, 0};
 
     i2c_init();
-    return;
+
     uint8_t err = I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, 0, buf, 2);
 
     //HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
-    prints("\n\r -- init err: ");
-    printi(err);
-    prints(" | id: ");
-    printi(buf[0]);
-    printi(buf[1]);
-    prints("\n\r");
+//    prints("\n\r -- init err: ");
+//    printi(err);
+//    prints(" | id: ");
+//    printi(buf[0]);
+//    printi(buf[1]);
+//    prints("\n\r");
 
     if (err != 0 || buf[0] != 0x58 || buf[1] != 4) {
         Error_Handler();
