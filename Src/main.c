@@ -34,8 +34,8 @@ int main(void) {
     Configure_GPIO_LED();
 //    Configure_GPIO_Button();
 //    Configure_EXTI();
-//    Configure_GPIO_USART2();
-//    Configure_USART2();
+    Configure_GPIO_USART2();
+    Configure_USART2();
     Configure_GPIO_SPI1();
     Configure_SPI1();
 //    USB_Init();
@@ -49,7 +49,7 @@ int main(void) {
         LED1_TOGGLE();
         LED2_TOGGLE();
 
-//        prints("\n\rtuned freq: ");
+        prints("\n\rtuned freq: ");
 //        printi(rda5807_GetFreq_In100Khz());
 
         uint32_t start = stick;
@@ -133,19 +133,18 @@ void Configure_GPIO_Button(void) {
 /**
   * @brief  This function :
              - Enables GPIO clock
-             - Configures the USART2 pins on GPIO PB6 PB7
+             - Configures the USART2 pins on GPIO PA2 PA3
   */
 void Configure_GPIO_USART2(void) {
     // Enable the peripheral clock of GPIOA
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
 
-    // GPIO configuration for USART2 signals
-    // (1) Select AF mode (10) on PA2 and PA3
-    // (2) AF1 for USART2 signals
+    // Select AF mode (10) on PA2 and PA3
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE2 | GPIO_MODER_MODE3))
-                   | (GPIO_MODER_MODE2_1 | GPIO_MODER_MODE3_1); // (1)
+                   | (GPIO_MODER_MODE2_1 | GPIO_MODER_MODE3_1);
+    // AF4 for USART2 signals
     GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3))
-                    | (1u << (2u * 4)) | (1u << (3u * 4)); // (2)
+                    | (4u << (2u * 4)) | (4u << (3u * 4));
 }
 
 /**
@@ -155,11 +154,10 @@ void Configure_USART2(void) {
     // Enable the peripheral clock USART2
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
-    // Configure USART2
-    // (1) oversampling by 16, 115200 baud
-    // (2) 8 data bit, 1 start bit, 1 stop bit, no parity
-    USART2->BRR = 480000 / 1152; // (1)
-    USART2->CR1 = USART_CR1_TE | USART_CR1_UE; // (2)
+    // oversampling by 16, 115200 baud
+    USART2->BRR = 320000 / 1152;
+    // 8 data bit, 1 start bit, 1 stop bit, no parity
+    USART2->CR1 = USART_CR1_TE | USART_CR1_UE;
 
     // polling idle frame Transmission
     while ((USART2->ISR & USART_ISR_TC) != USART_ISR_TC) {
@@ -168,11 +166,10 @@ void Configure_USART2(void) {
     USART2->ICR |= USART_ICR_TCCF;// clear TC flag
     USART2->CR1 |= USART_CR1_TCIE;// enable TC interrupt
 
-    // Configure IT
-    // (3) Set priority for USART2_IRQn
-    // (4) Enable USART2_IRQn
-    NVIC_SetPriority(USART2_IRQn, 0); // (3)
-    NVIC_EnableIRQ(USART2_IRQn); // (4)
+    // Set priority for USART2_IRQn
+    NVIC_SetPriority(USART2_IRQn, 0);
+    // Enable USART2_IRQn
+    NVIC_EnableIRQ(USART2_IRQn);
 }
 
 
