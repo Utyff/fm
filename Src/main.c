@@ -36,12 +36,12 @@ int main(void) {
 //    Configure_EXTI();
 //    Configure_GPIO_USART2();
 //    Configure_USART2();
-//    Configure_GPIO_SPI1();
-//    Configure_SPI1();
+    Configure_GPIO_SPI1();
+    Configure_SPI1();
 //    USB_Init();
     rda5807_init();
 //    ssd1306_Init();
-//    ssd1306_TestAll();
+    ssd1306_TestAll();
 
     LED1_TOGGLE();
 

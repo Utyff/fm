@@ -4,7 +4,7 @@
 
 void ssd1306_TestBorder() {
     ssd1306_Fill(Black);
-   
+
     uint32_t start = stick;
     uint32_t end;
     uint8_t x = 0;
@@ -52,12 +52,12 @@ void ssd1306_TestFPS() {
 
     ssd1306_SetCursor(2,0);
     ssd1306_WriteString("Testing...", Font_11x18, Black);
-   
+
     do {
         ssd1306_SetCursor(2, 18);
         ssd1306_WriteString(message, Font_11x18, Black);
         ssd1306_UpdateScreen();
-       
+
         char ch = message[0];
         memmove(message, message+1, sizeof(message)-2);
         message[sizeof(message)-2] = ch;
@@ -71,7 +71,7 @@ void ssd1306_TestFPS() {
     char buff[64] = "FPS: ";
 //    fps = (float)fps / ((end - start) / 1000.0);
 //    snprintf(buff, sizeof(buff), "~%d FPS", fps);
-   
+
     ssd1306_Fill(White);
     ssd1306_SetCursor(2, 18);
     ssd1306_WriteString(buff, Font_11x18, Black);
@@ -81,7 +81,7 @@ void ssd1306_TestFPS() {
 void ssd1306_TestAll() {
     ssd1306_Init();
 //    ssd1306_TestFPS();
-    Delay(300);
+//    Delay(300);
 //    ssd1306_TestBorder();
     ssd1306_TestFonts();
 }

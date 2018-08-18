@@ -1,0 +1,40 @@
+
+// ========
+
+//#define __HAL_RCC_SPI1_CLK_ENABLE()
+    SET_BIT(RCC->APB2ENR, (RCC_APB2ENR_SPI1EN))
+
+    GPIOA->OSPEEDR |= GPIO_OSPEEDER_OSPEED5 | GPIO_OSPEEDER_OSPEED7; // Very high speed PA5 PA7
+
+//#define __HAL_SPI_DISABLE(__HANDLE__)
+    CLEAR_BIT((__HANDLE__)->Instance->CR1, SPI_CR1_SPE)
+
+#define SPI_MODE_MASTER                 (SPI_CR1_MSTR | SPI_CR1_SSI)
+#define SPI_DIRECTION_2LINES            ((uint32_t)0x00000000U)
+#define SPI_DATASIZE_8BIT               ((uint32_t)0x00000000U)
+#define SPI_POLARITY_LOW                ((uint32_t)0x00000000U)
+#define SPI_PHASE_1EDGE                 ((uint32_t)0x00000000U)
+#define SPI_NSS_SOFT                    SPI_CR1_SSM
+#define SPI_BAUDRATEPRESCALER_8         ((uint32_t)SPI_CR1_BR_1)
+#define SPI_FIRSTBIT_MSB                ((uint32_t)0x00000000U)
+#define SPI_CRCCALCULATION_DISABLE     ((uint32_t)0x00000000U)
+
+  /* Configure : SPI Mode, Communication Mode, Data size, Clock polarity and phase, NSS management,
+  Communication speed, First bit and CRC calculation state */
+  WRITE_REG(SPI1->CR1, (SPI_MODE_MASTER | SPI_DIRECTION_2LINES | SPI_DATASIZE_8BIT |
+                                  SPI_POLARITY_LOW | SPI_PHASE_1EDGE | (SPI_NSS_SOFT & SPI_CR1_SSM) |
+                                  SPI_BAUDRATEPRESCALER_8 | SPI_FIRSTBIT_MSB  | SPI_CRCCALCULATION_DISABLE) );
+
+#define SPI_TIMODE_DISABLE             ((uint32_t)0x00000000U)
+
+  /* Configure : NSS management */
+  WRITE_REG(SPI1->CR2, (((SPI_NSS_SOFT >> 16U) & SPI_CR2_SSOE) | SPI_TIMODE_DISABLE));
+
+  /*---------------------------- SPIx CRCPOLY Configuration ------------------*/
+  /* Configure : CRC Polynomial */
+  WRITE_REG(SPI1->CRCPR, 7);
+
+//#define __HAL_SPI_ENABLE(__HANDLE__)
+  SET_BIT((__HANDLE__)->Instance->CR1, SPI_CR1_SPE)
+
+// ========
