@@ -59,16 +59,20 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define BTN1_Pin GPIO_PIN_0
-#define BTN1_GPIO_Port GPIOA
-#define BTN2_Pin GPIO_PIN_1
-#define BTN2_GPIO_Port GPIOA
+#define BAT_CHRG_Pin GPIO_PIN_14
+#define BAT_CHRG_GPIO_Port GPIOC
 #define LED1_Pin GPIO_PIN_4
 #define LED1_GPIO_Port GPIOA
 #define OLED_DC_Pin GPIO_PIN_6
 #define OLED_DC_GPIO_Port GPIOA
 #define OLED_CS_Pin GPIO_PIN_1
 #define OLED_CS_GPIO_Port GPIOB
+#define BTN1_Pin GPIO_PIN_3
+#define BTN1_GPIO_Port GPIOB
+#define BTN2_Pin GPIO_PIN_4
+#define BTN2_GPIO_Port GPIOB
+#define BTN3_Pin GPIO_PIN_5
+#define BTN3_GPIO_Port GPIOB
 #define LED2_Pin GPIO_PIN_8
 #define LED2_GPIO_Port GPIOB
 
