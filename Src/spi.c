@@ -5,6 +5,7 @@
   * @brief  This function :
   *           - Enables GPIO clock
   *           - Configures the SPI1 pins on GPIO PA5 PA7
+  *           - PA6 as DC and PB1 as CS
   */
 void Configure_GPIO_SPI1(void) {
     // Enable the peripheral clock of GPIOA
@@ -86,7 +87,7 @@ uint8_t SPI_Transmit(uint8_t *pData, uint16_t Size) {
             *((__IO uint8_t *) &SPI1->DR) = (*pData++);
             Size--;
         } else {
-            if (stick - Tickstart >= 5) {
+            if (stick - Tickstart >= Timeout) {
                 return 1;
             }
         }
