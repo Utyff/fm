@@ -1,7 +1,6 @@
 #include "stm32l0xx.h"
 #include <rda5807m.h>
 #include <spi.h>
-#include <ssd1306_tests.h>
 #include <ssd1306.h>
 #include <usb_lib.h>
 #include "main.h"
@@ -38,10 +37,9 @@ int main(void) {
     Configure_USART2();
     Configure_GPIO_SPI1();
     Configure_SPI1();
-//    USB_Init();
+    USB_Init();
     rda5807_init();
-//    ssd1306_Init();
-    ssd1306_TestAll();
+    ssd1306_Init();
 
     LED1_TOGGLE();
 
@@ -49,13 +47,19 @@ int main(void) {
         LED1_TOGGLE();
         LED2_TOGGLE();
 
-        prints("\n\rtuned freq: ");
-//        printi(rda5807_GetFreq_In100Khz());
+//        prints("\n\rtuned freq: ");
+//        printh(rda5807_GetFreq_In100Khz());
+
+        char buf[50];
+        _itoa(rda5807_GetFreq_In100Khz(), buf);
+        ssd1306_SetCursor(2, 26);
+        ssd1306_WriteString("freq: ", Font_11x18, White);
+        ssd1306_WriteString(buf, Font_11x18, White);
+        ssd1306_UpdateScreen();
 
         uint32_t start = stick;
         while (stick - start < 300) {
-//            Enumerate(0);
-//            rda5807_SoftReset();
+            Enumerate(0);
         }
     }
 }
@@ -249,6 +253,24 @@ void Delay(uint32_t delay) {
     while (stick - start < delay);
 }
 
+void _itoa(uint16_t i, char* p){
+//    char const digit[] = "0123456789";
+    if(i<0){
+        *p++ = '-';
+        i *= -1;
+    }
+    int shifter = i;
+    do{ //Move to where representation ends
+        ++p;
+        shifter = shifter/10;
+    }while(shifter);
+    *p = '\0';
+    do{ //Move back, inserting digits as u go
+        *--p = (char)('0' + i%10);
+        i = i/(uint16_t)10;
+    }while(i);
+}
+
 void _strcpy(uint8_t *dst, const uint8_t *src) {
     int i = 0;
     do {
@@ -267,6 +289,12 @@ void printi(uint16_t val) {
     buf[3] = hex2char(val & 0xFu);
     buf[4] = 0;
 
+    prints((char *) buf);
+}
+
+void printh(uint16_t val) {
+    uint8_t buf[7];
+    _itoa(val, buf);
     prints((char *) buf);
 }
 

@@ -27,9 +27,13 @@
 extern uint32_t stick;
 extern uint32_t Tickstart;
 
+void _itoa(uint16_t, char*);
+
 void prints(const char *);
 
 void printi(uint16_t);
+
+void printh(uint16_t);
 
 void _strcpy(uint8_t *dst, const uint8_t *src);
 

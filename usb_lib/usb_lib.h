@@ -2,7 +2,7 @@
 #include "usb_descr.h"
 
 //Максимальное количесво конечных точек
-#define MAX_ENDPOINTS					2
+#define MAX_ENDPOINTS					3
 //Стандартные запросы
 #define GET_DESCRIPTOR					0x06
 #define SET_DESCRIPTOR					0x07	//не реализован
