@@ -94,6 +94,41 @@ void SetClocks() {
 // ============== SYSCLK
     RCC->CFGR |= RCC_CFGR_SW_PLL;
     while (RCC->CFGR & RCC_CFGR_SWS != RCC_CFGR_SWS_PLL);
+
+    // set HSI48 as USB Clock source
+    RCC->CCIPR |= RCC_CCIPR_HSI48SEL;
+
+// ==========  RCCEx_CRSConfig
+
+    // Before configuration, reset CRS registers to their default values
+    // RCC_CRS_FORCE_RESET()
+    SET_BIT(RCC->APB1RSTR, RCC_APB1RSTR_CRSRST);
+    // RCC_CRS_RELEASE_RESET()
+    CLEAR_BIT(RCC->APB1RSTR,RCC_APB1RSTR_CRSRST);
+
+#define RCC_CRS_SYNC_DIV1              ((uint32_t)0x00000000U) // Synchro Signal not divided (default)
+#define RCC_CRS_SYNC_SOURCE_USB        CRS_CFGR_SYNCSRC_1      // Synchro Signal source USB SOF (default)
+#define RCC_CRS_SYNC_POLARITY_RISING   ((uint32_t)0x00000000U) // Synchro Active on rising edge (default)
+#define RCC_CRS_RELOADVALUE_CALCULATE(__FTARGET__, __FSYNC__)  (((__FTARGET__) / (__FSYNC__)) - 1)
+#define RCC_CRS_ERROR_LIMIT 34
+
+    uint32_t value;
+    // Set the SYNCDIV[2:0] bits according to Prescaler value
+    // Set the SYNCSRC[1:0] bits according to Source value
+    // Set the SYNCSPOL bit according to Polarity value
+    value = (RCC_CRS_SYNC_DIV1 | RCC_CRS_SYNC_SOURCE_USB | RCC_CRS_SYNC_POLARITY_RISING);
+    // Set the RELOAD[15:0] bits according to ReloadValue value
+    value |= RCC_CRS_RELOADVALUE_CALCULATE(48000000,1000);
+    // Set the FELIM[7:0] bits according to ErrorLimitValue value
+    value |= (RCC_CRS_ERROR_LIMIT << CRS_CFGR_FELIM_Pos);
+    CRS->CFGR = value;
+
+    // Adjust HSI48 oscillator smooth trimming
+    // Set the TRIM[5:0] bits according to RCC_CRS_HSI48CalibrationValue value
+    MODIFY_REG(CRS->CR, CRS_CR_TRIM, (32 << CRS_CR_TRIM_Pos));
+
+    // Enable Automatic trimming & Frequency error counter
+    CRS->CR |= CRS_CR_AUTOTRIMEN | CRS_CR_CEN;
 }
 
 /**
