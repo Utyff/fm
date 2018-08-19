@@ -125,7 +125,7 @@ void SetClocks() {
 
     // Adjust HSI48 oscillator smooth trimming
     // Set the TRIM[5:0] bits according to RCC_CRS_HSI48CalibrationValue value
-    MODIFY_REG(CRS->CR, CRS_CR_TRIM, (32 << CRS_CR_TRIM_Pos));
+    //MODIFY_REG(CRS->CR, CRS_CR_TRIM, (32 << CRS_CR_TRIM_Pos));
 
     // Enable Automatic trimming & Frequency error counter
     CRS->CR |= CRS_CR_AUTOTRIMEN | CRS_CR_CEN;
