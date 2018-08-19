@@ -64,30 +64,23 @@ int main(void) {
     }
 }
 
-uint32_t hsiSetTime;
-uint32_t hsi48SetTime;
-uint32_t pllSetTime;
-uint32_t sysclkSetTime;
 
 void SetClocks() {
 // ==============  HSI
     RCC->CR |= RCC_CR_HSION;
-    hsiSetTime = 0;
-    while (RCC->CR & RCC_CR_HSIRDY == RESET) hsiSetTime++;
+    while (RCC->CR & RCC_CR_HSIRDY == RESET);
 
 // ============== HSI48
     SET_BIT(RCC->CRRCR, RCC_CRRCR_HSI48ON);
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
-    hsi48SetTime = 0;
-    while (RCC->CRRCR & RCC_CRRCR_HSI48RDY == RESET) hsi48SetTime++;
+    while (RCC->CRRCR & RCC_CRRCR_HSI48RDY == RESET);
 
 // ============== PLL
     RCC->CFGR |= RCC_CFGR_PLLSRC_HSI | RCC_CFGR_PLLMUL4 | RCC_CFGR_PLLDIV2;
     // Enable the main PLL.
     SET_BIT(RCC->CR, RCC_CR_PLLON);
-    pllSetTime = 0;
     // Wait till PLL is ready
-    while (RCC->CR & RCC_CR_PLLRDY == RESET) pllSetTime++;
+    while (RCC->CR & RCC_CR_PLLRDY == RESET);
 
 // ============== FLASH
     FLASH->ACR |= FLASH_ACR_LATENCY;
@@ -100,8 +93,7 @@ void SetClocks() {
 
 // ============== SYSCLK
     RCC->CFGR |= RCC_CFGR_SW_PLL;
-    sysclkSetTime = 0;
-    while (RCC->CFGR & RCC_CFGR_SWS != RCC_CFGR_SWS_PLL) sysclkSetTime++;
+    while (RCC->CFGR & RCC_CFGR_SWS != RCC_CFGR_SWS_PLL);
 }
 
 /**
@@ -253,22 +245,22 @@ void Delay(uint32_t delay) {
     while (stick - start < delay);
 }
 
-void _itoa(uint16_t i, char* p){
+void _itoa(uint16_t i, char *p) {
 //    char const digit[] = "0123456789";
-    if(i<0){
+    if (i < 0) {
         *p++ = '-';
         i *= -1;
     }
     int shifter = i;
-    do{ //Move to where representation ends
+    do { //Move to where representation ends
         ++p;
-        shifter = shifter/10;
-    }while(shifter);
+        shifter = shifter / 10;
+    } while (shifter);
     *p = '\0';
-    do{ //Move back, inserting digits as u go
-        *--p = (char)('0' + i%10);
-        i = i/(uint16_t)10;
-    }while(i);
+    do { //Move back, inserting digits as u go
+        *--p = (char) ('0' + i % 10);
+        i = i / (uint16_t) 10;
+    } while (i);
 }
 
 void _strcpy(uint8_t *dst, const uint8_t *src) {
@@ -293,9 +285,9 @@ void printi(uint16_t val) {
 }
 
 void printh(uint16_t val) {
-    uint8_t buf[7];
+    char buf[7];
     _itoa(val, buf);
-    prints((char *) buf);
+    prints(buf);
 }
 
 void prints(const char *str) {
