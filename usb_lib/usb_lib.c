@@ -56,7 +56,7 @@ void Enumerate(uint8_t number){
 					EP_WaitNull(number);
 					break;
 				case CONFIGURATION_DESCRIPTOR:
-					length = ((packet -> wLength < CONFIG_DESCRIPTOR_SIZE_BYTE) ? packet -> wLength : CONFIG_DESCRIPTOR_SIZE_BYTE);
+					length = (uint8_t)((packet -> wLength < CONFIG_DESCRIPTOR_SIZE_BYTE) ? packet -> wLength : CONFIG_DESCRIPTOR_SIZE_BYTE);
 					EP_Write(number, USB_ConfigDescriptor, length);
 					EP_WaitNull(number);
 					break;

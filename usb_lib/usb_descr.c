@@ -78,7 +78,7 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
 };
 
 
-const uint8_t USB_ConfigDescriptor[] = {
+/*const uint8_t USB_ConfigDescriptor[] = {
 //Дескриптор конфигурации
         0x09,    // bLength
         USB_DESC_TYPE_CONFIGURATION,    // bDescriptorType
@@ -115,7 +115,106 @@ const uint8_t USB_ConfigDescriptor[] = {
         0x40,    // wMaxPacketSize_L
         0x00,    // wMaxPacketSize_H
         0x00     // bInterval
+}; // */
+
+#define USB_CDC_CONFIG_DESC_SIZ 67   // Total size of USB CDC device Configuration Descriptor
+#define CDC_IN_EP               0x81 // EP1 for data IN
+#define CDC_OUT_EP              0x01 // EP1 for data OUT
+#define CDC_CMD_EP              0x82 // EP2 for CDC commands IN
+#define CDC_CMD_PACKET_SIZE     8    // Control Endpoint Packet size
+#define CDC_DATA_FS_MAX_PACKET_SIZE 64  // Endpoint IN & OUT Packet size
+
+// USB CDC device Configuration Descriptor
+const uint8_t USB_ConfigDescriptor[USB_CDC_CONFIG_DESC_SIZ] = {
+        // Configuration Descriptor
+        0x09,   // bLength: Configuration Descriptor size
+        USB_DESC_TYPE_CONFIGURATION,     // bDescriptorType: Configuration
+        USB_CDC_CONFIG_DESC_SIZ,         // wTotalLength:no of returned bytes
+        0x00,
+        0x02,   // bNumInterfaces: 2 interface
+        0x01,   // bConfigurationValue: Configuration value
+        0x00,   // iConfiguration: Index of string descriptor describing the configuration
+        0xC0,   // bmAttributes: self powered
+        0x4B,   // MaxPower 150 mA /2
+
+        // Interface Descriptor
+        0x09,   // bLength: Interface Descriptor size
+        USB_DESC_TYPE_INTERFACE,  // bDescriptorType: Interface
+        // Interface descriptor type
+        0x00,   // bInterfaceNumber: Number of Interface
+        0x00,   // bAlternateSetting: Alternate setting
+        0x01,   // bNumEndpoints: One endpoints used
+        0x02,   // bInterfaceClass: Communication Interface Class
+        0x02,   // bInterfaceSubClass: Abstract Control Model
+        0x01,   // bInterfaceProtocol: Common AT commands
+        0x00,   // iInterface:
+
+        // Header Functional Descriptor
+        0x05,   // bLength: Endpoint Descriptor size
+        0x24,   // bDescriptorType: CS_INTERFACE
+        0x00,   // bDescriptorSubtype: Header Func Desc
+        0x10,   // bcdCDC: spec release number
+        0x01,
+
+        // Call Management Functional Descriptor
+        0x05,   // bFunctionLength
+        0x24,   // bDescriptorType: CS_INTERFACE
+        0x01,   // bDescriptorSubtype: Call Management Func Desc
+        0x00,   // bmCapabilities: D0+D1
+        0x01,   // bDataInterface: 1
+
+        // ACM Functional Descriptor
+        0x04,   // bFunctionLength
+        0x24,   // bDescriptorType: CS_INTERFACE
+        0x02,   // bDescriptorSubtype: Abstract Control Management desc
+        0x02,   // bmCapabilities
+
+        // Union Functional Descriptor
+        0x05,   // bFunctionLength
+        0x24,   // bDescriptorType: CS_INTERFACE
+        0x06,   // bDescriptorSubtype: Union func desc
+        0x00,   // bMasterInterface: Communication class interface
+        0x01,   // bSlaveInterface0: Data Class Interface
+
+        // Endpoint 2 Descriptor
+        0x07,                        // bLength: Endpoint Descriptor size
+        USB_DESC_TYPE_ENDPOINT,      // bDescriptorType: Endpoint
+        CDC_CMD_EP,                  // bEndpointAddress
+        0x03,                        // bmAttributes: Interrupt
+        LOBYTE(CDC_CMD_PACKET_SIZE), // wMaxPacketSize:
+        HIBYTE(CDC_CMD_PACKET_SIZE),
+        0x10,                        // bInterval:
+
+        // Data class interface descriptor
+        0x09,   // bLength: Endpoint Descriptor size
+        USB_DESC_TYPE_INTERFACE,  // bDescriptorType:
+        0x01,   // bInterfaceNumber: Number of Interface
+        0x00,   // bAlternateSetting: Alternate setting
+        0x02,   // bNumEndpoints: Two endpoints used
+        0x0A,   // bInterfaceClass: CDC
+        0x00,   // bInterfaceSubClass:
+        0x00,   // bInterfaceProtocol:
+        0x00,   // iInterface:
+
+        // Endpoint OUT Descriptor
+        0x07,   // bLength: Endpoint Descriptor size
+        USB_DESC_TYPE_ENDPOINT,            // bDescriptorType: Endpoint
+        CDC_OUT_EP,                        // bEndpointAddress
+        0x02,                              // bmAttributes: Bulk
+        LOBYTE(CDC_DATA_FS_MAX_PACKET_SIZE), // wMaxPacketSize:
+        HIBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),
+        0x00,                              // bInterval: ignore for Bulk transfer
+
+        // Endpoint IN Descriptor
+        0x07,   // bLength: Endpoint Descriptor size
+        USB_DESC_TYPE_ENDPOINT,            // bDescriptorType: Endpoint
+        CDC_IN_EP,                         // bEndpointAddress
+        0x02,                              // bmAttributes: Bulk
+        LOBYTE(CDC_DATA_FS_MAX_PACKET_SIZE), // wMaxPacketSize:
+        HIBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),
+        0x00                               // bInterval: ignore for Bulk transfer
 };
+
 
 const uint8_t USB_StringLangDescriptor[] = {
         0x04,    // bLength
@@ -127,30 +226,30 @@ const uint8_t USB_StringLangDescriptor[] = {
 const uint8_t USB_StringManufacturingDescriptor[] = {
         STRING_MANUFACTURING_DESCRIPTOR_SIZE_BYTE,       // bLength
         0x03,                                            // bDescriptorType
-        'S', 0x00,                                       // bString...
-        'O', 0x00,
-        'B', 0x00,
-        'S', 0x00
+        'U', 0x00,                                       // bString...
+        'T', 0x00,
+        'Y', 0x00,
+        'F', 0x00
 };
 
 const uint8_t USB_StringProdDescriptor[] = {
         STRING_PRODUCT_DESCRIPTOR_SIZE_BYTE,        // bLength
         0x03,                                       // bDescriptorType
-        'H', 0x00,                                  // bString...
-        'I', 0x00,
-        'D', 0x00,
-        ' ', 0x00,
+        'U', 0x00,                                  // bString...
         'T', 0x00,
-        'E', 0x00,
-        'S', 0x00,
-        'T', 0x00
+        'Y', 0x00,
+        'F', 0x00,
+        '-', 0x00,
+        'C', 0x00,
+        'D', 0x00,
+        'C', 0x00
 };
 
 const uint8_t USB_StringSerialDescriptor[STRING_SERIAL_DESCRIPTOR_SIZE_BYTE] = {
         STRING_SERIAL_DESCRIPTOR_SIZE_BYTE, // bLength
         0x03,                               // bDescriptorType
         'q', 0,
-        '2', 0,
+        'r', 0,
         '3', 0,
         '4', 0,
         '5', 0,
