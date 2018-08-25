@@ -78,7 +78,7 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
 };
 
 
-/*const uint8_t USB_ConfigDescriptor[] = {
+const uint8_t USB_ConfigDescriptor[] = {
 //Дескриптор конфигурации
         0x09,    // bLength
         USB_DESC_TYPE_CONFIGURATION,    // bDescriptorType
@@ -116,7 +116,7 @@ const uint8_t USB_DeviceQualifierDescriptor[] = {
         0x00,    // wMaxPacketSize_H
         0x00     // bInterval
 }; // */
-
+/*
 #define USB_CDC_CONFIG_DESC_SIZ 67   // Total size of USB CDC device Configuration Descriptor
 #define CDC_IN_EP               0x81 // EP1 for data IN
 #define CDC_OUT_EP              0x01 // EP1 for data OUT
@@ -213,7 +213,7 @@ const uint8_t USB_ConfigDescriptor[USB_CDC_CONFIG_DESC_SIZ] = {
         LOBYTE(CDC_DATA_FS_MAX_PACKET_SIZE), // wMaxPacketSize:
         HIBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),
         0x00                               // bInterval: ignore for Bulk transfer
-};
+}; // */
 
 
 const uint8_t USB_StringLangDescriptor[] = {
