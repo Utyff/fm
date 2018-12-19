@@ -20,6 +20,9 @@ void Configure_GPIO_USART2();
 
 void Configure_USART2(void);
 
+void drawScreen();
+
+void getButtons();
 
 uint8_t send = 0;
 uint8_t string2send[32] = "STm\n";
@@ -31,13 +34,13 @@ int main(void) {
     SetClocks();
     SysTick_Config(32000);
     Configure_GPIO_LED();
-//    Configure_GPIO_Button();
+    Configure_GPIO_Button();
 //    Configure_EXTI();
     Configure_GPIO_USART2();
     Configure_USART2();
     Configure_GPIO_SPI1();
     Configure_SPI1();
-    USB_Init();
+//    USB_Init();
     rda5807_init();
     ssd1306_Init();
 
@@ -50,18 +53,88 @@ int main(void) {
 //        prints("\n\rtuned freq: ");
 //        printh(rda5807_GetFreq_In100Khz());
 
-        char buf[50];
-        _itoa(rda5807_GetFreq_In100Khz(), buf);
-        ssd1306_SetCursor(2, 26);
-        ssd1306_WriteString("freq: ", Font_11x18, White);
-        ssd1306_WriteString(buf, Font_11x18, White);
-        ssd1306_UpdateScreen();
+        getButtons();
+        drawScreen();
 
         uint32_t start = stick;
-        while (stick - start < 300) {
-            Enumerate(0);
+        while (stick - start < 100) {
+//            Enumerate(0);
         }
     }
+}
+
+#define MODE_FREQ 0x1
+#define MODE_VOL  0x2
+
+uint16_t mode = MODE_FREQ;
+uint16_t lastState = 0; // buttons state
+uint8_t volume = 1   ;  // 0 - mote, 1-16 volume level
+
+void getButtons() {
+    uint16_t state = (uint16_t) (((~(GPIOB->IDR)) & (GPIO_IDR_ID3 | GPIO_IDR_ID4 | GPIO_IDR_ID5)) >> 3);
+    if (state == lastState) {
+        return;
+    }
+
+    uint16_t action = (mode << 8) | (lastState << 4) | state;
+    lastState = state;
+
+    switch (action) {
+        // frequency control mode
+        case 0x110: // PB3 up, set mode volume
+            mode = MODE_VOL;
+            break;
+        case 0x120: // PB4 up, seek down
+            rda5807_StartSeek(0);
+            break;
+        case 0x140: // PB5 up, seek up
+            rda5807_StartSeek(1);
+            break;
+            // volume control mode
+        case 0x210: // PB3 up, set mode frequency
+            mode = MODE_FREQ;
+            break;
+        case 0x220: // PB4 up, vol down
+            if (volume < 16) {
+                rda5807_SetVolume(++volume);
+            }
+            break;
+        case 0x240: // PB5 up, vol up
+            if (volume > 0) {
+                rda5807_SetVolume(--volume);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void getFreq(char *buf) {
+    _itoa(rda5807_GetFreq_In100Khz(), buf);
+    int i = 0;
+    while (buf[i] != 0) i++;
+    buf[i + 1] = 0;
+    buf[i] = buf[i - 1];
+    buf[i - 1] = '.';
+}
+
+void drawScreen() {
+    char buf[50];
+    getFreq(buf);
+    ssd1306_Fill(0);
+
+    ssd1306_SetCursor(0, 0);
+    ssd1306_WriteString(buf, Font_11x18, White);
+    ssd1306_WriteString(" MHz", Font_7x10, White);
+
+    if (mode == MODE_VOL) {
+        _itoa(volume, buf);
+        ssd1306_SetCursor(0, 40);
+        ssd1306_WriteString("vol: ", Font_11x18, White);
+        ssd1306_WriteString(buf, Font_11x18, White);
+    }
+
+    ssd1306_UpdateScreen();
 }
 
 
@@ -151,11 +224,12 @@ void Configure_GPIO_LED(void) {
   */
 void Configure_GPIO_Button(void) {
     // Enable the peripheral clock of GPIOA
-    RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
+    RCC->IOPENR |= RCC_IOPENR_GPIOBEN;
 
     // Select mode
-    // Select input mode (00) on PA0
-//    GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODER0));
+    // Select input mode (00) on PB3 PB4 PB5 with Pull-up (01)
+    GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE3 | GPIO_MODER_MODE4 | GPIO_MODER_MODE5));
+    GPIOB->PUPDR = GPIO_PUPDR_PUPD3_0 | GPIO_PUPDR_PUPD4_0 | GPIO_PUPDR_PUPD5_0;
 }
 
 /**

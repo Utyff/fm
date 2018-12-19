@@ -56,9 +56,11 @@ void rda5807_init() {
     rda5807_SoftReset();
     rda5807_SetupDefault();
 
-    uint32_t ii = 10000000;
-    while (ii--);
+    uint32_t start = stick;
+    while (stick - start < 10);
+
 //    printf("start freq: %u \n\r", rda5807_GetFreq_In100Khz());
+    rda5807_SetVolume(1);
     rda5807_StartSeek(1);
 
 /*    while (rda5807_Get_SeekTuneReadyFlag())
