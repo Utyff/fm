@@ -3,7 +3,7 @@
 #include <spi.h>
 #include <ssd1306_tests.h>
 #include <ssd1306.h>
-#include <usb_lib.h>
+#include <usblib.h>
 #include "main.h"
 
 
@@ -37,12 +37,11 @@ int main(void) {
     Configure_USART2();
     Configure_GPIO_SPI1();
     Configure_SPI1();
-    USB_Init();
+    USBLIB_Init();
 
-    rda5807_init();
+//    rda5807_init();
 
-    //ssd1306_Init();
-    ssd1306_TestAll();
+    ssd1306_Init();
 
     LED1_TOGGLE();
 
@@ -50,12 +49,11 @@ int main(void) {
         LED1_TOGGLE();
         LED2_TOGGLE();
 
-        prints("\n\rtuned freq: ");
-        printi(rda5807_GetFreq_In100Khz());
+//        prints("\n\rtuned freq: ");
+//        printi(rda5807_GetFreq_In100Khz());
 
         uint32_t start = stick;
         while (stick - start < 300) {
-            Enumerate(0);
         }
     }
 }
