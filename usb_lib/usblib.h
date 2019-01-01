@@ -254,9 +254,9 @@ typedef struct {
     uint32_t  lTX;          // TX Data length
     uint16_t *pRX_BUFF;     // RX Buffer pointer
     uint32_t  lRX;          // RX Data length
-    uint8_t   TX_BUFF_SIZE; // Max length of pTX_BUFF buf, NOT a EP Buf!!!
-    uint32_t  lRX_PMA;      // ?
-
+    uint8_t   TX_BUFF_FREE; // is PMA tx buffer free.
+//    uint8_t   TX_BUFF_SIZE; // Max length of pTX_BUFF buf, NOT a EP Buf!!!
+//    uint32_t  lRX_PMA;      // ?
 } USBLIB_EPData;
 
 typedef struct
@@ -311,7 +311,7 @@ void USBLIB_ResetUSB(void);
 void USBLIB_Reset(void);
 void USBLIB_SetEPTable(uint8_t EP, uint32_t TXAddress, uint32_t TXCount, uint32_t RXAddress, uint32_t RXCount);
 void USBLIB_LogCheckForTransmit(void);
-void USBLIB_Transmit(uint16_t *Data, uint16_t Length);
+void USBLIB_Transmit(void *Data, uint16_t Length);
 void uUSBLIB_LineStateHandler(USBLIB_WByte LineState);
 
 __weak void uUSBLIB_DataReceivedHandler(uint16_t *Data, uint16_t Length);

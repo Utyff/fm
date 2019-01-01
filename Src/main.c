@@ -51,9 +51,10 @@ int main(void) {
         char buf[20];
 //        prints("\n\rtuned freq: ");
 //        printh(rda5807_GetFreq_In100Khz());
-//        getFreq(buf);
-//        USBLIB_Transmit((uint16_t *) buf, 6);
-//        USBLIB_Transmit((uint16_t *) "\r\n", 2);
+        getFreq(buf);
+        USBLIB_Transmit("tuned freq: ", 12);
+        USBLIB_Transmit(buf, 6);
+        USBLIB_Transmit("\r\n", 2);
 
         getButtons();
         drawScreen();
