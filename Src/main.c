@@ -2,7 +2,7 @@
 #include <rda5807m.h>
 #include <spi.h>
 #include <ssd1306.h>
-#include <usb_lib.h>
+#include <usblib.h>
 #include "main.h"
 
 
@@ -14,8 +14,6 @@ void Configure_GPIO_LED(void);
 
 void Configure_GPIO_Button(void);
 
-void Configure_EXTI(void);
-
 void Configure_GPIO_USART2();
 
 void Configure_USART2(void);
@@ -23,6 +21,8 @@ void Configure_USART2(void);
 void drawScreen();
 
 void getButtons();
+
+void getFreq(char *);
 
 uint8_t send = 0;
 uint8_t string2send[32] = "STm\n";
@@ -35,12 +35,11 @@ int main(void) {
     SysTick_Config(32000);
     Configure_GPIO_LED();
     Configure_GPIO_Button();
-//    Configure_EXTI();
     Configure_GPIO_USART2();
     Configure_USART2();
     Configure_GPIO_SPI1();
     Configure_SPI1();
-//    USB_Init();
+    USBLIB_Init();
     rda5807_init();
     ssd1306_Init();
 
@@ -49,16 +48,18 @@ int main(void) {
     while (1) {
         LED1_TOGGLE();
         LED2_TOGGLE();
-
+        char buf[20];
 //        prints("\n\rtuned freq: ");
 //        printh(rda5807_GetFreq_In100Khz());
+//        getFreq(buf);
+//        USBLIB_Transmit((uint16_t *) buf, 6);
+//        USBLIB_Transmit((uint16_t *) "\r\n", 2);
 
         getButtons();
         drawScreen();
 
         uint32_t start = stick;
         while (stick - start < 100) {
-//            Enumerate(0);
         }
     }
 }
@@ -68,7 +69,7 @@ int main(void) {
 
 uint16_t mode = MODE_FREQ;
 uint16_t lastState = 0; // buttons state
-uint8_t volume = 1   ;  // 0 - mote, 1-16 volume level
+uint8_t volume = 1;     // 0 - mote, 1-16 volume level
 
 void getButtons() {
     uint16_t state = (uint16_t) (((~(GPIOB->IDR)) & (GPIO_IDR_ID3 | GPIO_IDR_ID4 | GPIO_IDR_ID5)) >> 3);
@@ -143,9 +144,15 @@ void SetClocks() {
     RCC->CR |= RCC_CR_HSION;
     while (RCC->CR & RCC_CR_HSIRDY == RESET);
 
+// === Enable the VREF for HSI48
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+    SYSCFG->CFGR3 |= 0x01;
+    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF));
+    SYSCFG->CFGR3 |= SYSCFG_CFGR3_ENREF_HSI48;
+    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_REF_HSI48_RDYF));
+
 // ============== HSI48
     SET_BIT(RCC->CRRCR, RCC_CRRCR_HSI48ON);
-    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
     while (RCC->CRRCR & RCC_CRRCR_HSI48RDY == RESET);
 
 // ============== PLL
@@ -159,7 +166,7 @@ void SetClocks() {
     FLASH->ACR |= FLASH_ACR_LATENCY;
     // Check that the new number of wait states is taken into account to access the Flash
     // memory by reading the FLASH_ACR register
-    if ((FLASH->ACR & FLASH_ACR_LATENCY) == RESET) { Error_Handler(); }
+    while ((FLASH->ACR & FLASH_ACR_LATENCY) == RESET);
 
 // ============== HCLK
     RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
@@ -275,23 +282,6 @@ void Configure_USART2(void) {
 }
 
 
-/**
-  * @brief  This function configures EXTI.
-  */
-void Configure_EXTI(void) {
-    // Configure Syscfg, exti and nvic for pushbutton PA0
-    // (1) PA0 as source input
-    // (2) unmask port 0
-    // (3) Rising edge
-    // (4) Set priority
-    // (5) Enable EXTI0_1_IRQn
-//    SYSCFG->EXTICR[0] = (SYSCFG->EXTICR[0] & ~SYSCFG_EXTICR1_EXTI0) | SYSCFG_EXTICR1_EXTI0_PA; // (1)
-//    EXTI->IMR |= EXTI_IMR_MR0; // (2)
-//    EXTI->RTSR |= EXTI_RTSR_TR0; // (3)
-//    NVIC_SetPriority(EXTI0_1_IRQn, 0); // (4)
-//    NVIC_EnableIRQ(EXTI0_1_IRQn); // (5)
-}
-
 /******************************************************************************/
 /*            Cortex-M0 Processor Exceptions Handlers                         */
 /******************************************************************************/
@@ -316,14 +306,6 @@ void HardFault_Handler(void) {
   */
 void SysTick_Handler(void) {
     stick++;
-}
-
-
-/**
-  * @brief  This function handles EXTI 0 1 interrupt request.
-  */
-void EXTI0_1_IRQHandler(void) {
-    EXTI->PR |= 1;
 }
 
 /**
