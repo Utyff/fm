@@ -55,6 +55,17 @@ void USBLIB_Init(void)
     NVIC_EnableIRQ(USB_IRQn);
     // enable D+ Pull-up
     USB->BCDR |= USB_BCDR_DPPU;
+
+    // ===== DMA for copy data to/from PMA
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;      // enable DMA clock
+    DMA1_Channel4->CCR &= ~DMA_CCR_DIR;    // direction from peripheral to memory
+    DMA1_Channel4->CCR |= DMA_CCR_MEM2MEM; // enable MEM2MEM mode
+    DMA1_Channel4->CCR |= DMA_CCR_PINC;    // enable peripheral address increment
+    DMA1_Channel4->CCR |= DMA_CCR_MINC;    // enable memory address increment
+    DMA1_Channel4->CCR |= DMA_CCR_PSIZE_0; // peripheral wide - 16 бит
+    DMA1_Channel4->CCR |= DMA_CCR_MSIZE_0; // memory wide - 16 бит
+    DMA1_Channel4->CCR |= DMA_CCR_PL;      // priority - very high
+    DMA1_Channel4->CCR &= ~DMA_CCR_CIRC;   // disable DMA circular mode
 }
 
 USBLIB_LineCoding lineCoding = {115200, 0, 0, 8};
@@ -223,45 +234,52 @@ void USBLIB_setStatRx(uint8_t EPn, uint16_t Stat)
     *(uint16_t *)&(USB_->EPR[EPn]) = (uint16_t) ((val ^ (Stat & EP_STAT_RX)) & (EP_MASK | EP_STAT_RX));
 }
 
+void dmacpy(void *dst, const void *src, uint8_t count) {
+    DMA1_Channel4->CPAR = (uint32_t)src;   // set peripheral address
+    DMA1_Channel4->CMAR = (uint32_t)dst;   // set memory address
+    DMA1_Channel4->CNDTR = count;          // circle count
+    DMA1_Channel4->CCR |= DMA_CCR_EN;      // run DMA channel 4
+
+    while (DMA1_Channel4->CNDTR != 0);     // wait transfer complete
+
+    DMA1_Channel4->CCR &= ~DMA_CCR_EN;     // disable DMA channel 4
+}
+
 void USBLIB_Pma2EPBuf2(uint8_t EPn)
 {
     register uint8_t Count = EpData[EPn].lRX = (uint8_t) (EPBufTable[EPn].RX_Count & 0x3FF);
     uint16_t *Address = (uint16_t *) (USB_PBUFFER + EPBufTable[EPn].RX_Address);
     uint16_t *Distination = EpData[EPn].pRX_BUFF;
-    for (uint8_t i = 0; i < Count; i++) {
-        *Distination = *Address;
-        Distination++;
-        Address++;
-    }
+
+    dmacpy(Distination, Address, (uint8_t) ((Count + 1) / 2));
 }
 
 void USBLIB_EPBuf2Pma(uint8_t EPn)
 {
     uint16_t *Distination;
     uint16_t *TX_Buff;
-    uint8_t   Count;
+    register uint8_t   Count;
+    register USBLIB_EPData *ep = &EpData[EPn];
 
-    Count = (uint8_t) (EpData[EPn].lTX <= EpData[EPn].TX_Max ? EpData[EPn].lTX : EpData[EPn].TX_Max);
+    Count = (uint8_t) (ep->lTX <= ep->TX_Max ? ep->lTX : ep->TX_Max);
     EPBufTable[EPn].TX_Count = Count;
 
-    TX_Buff = EpData[EPn].pTX_BUFF;
+    TX_Buff = ep->pTX_BUFF;
     Distination = (uint16_t *)(USB_PBUFFER + EPBufTable[EPn].TX_Address);
-    for (uint8_t i = 0; i < (Count + 1) / 2; i++) {
-        *Distination = *TX_Buff;
-        Distination++;
-        TX_Buff++;
-    }
-    EpData[EPn].lTX -= Count;
-    EpData[EPn].pTX_BUFF = TX_Buff;
-    EpData[EPn].TX_PMA_FREE = 0;
+
+    dmacpy(Distination, TX_Buff, (uint8_t) ((Count + 1) / 2));
+
+    ep->lTX -= Count;
+    ep->pTX_BUFF = TX_Buff + ((Count + 1) / 2);
+    ep->TX_PMA_FREE = 0;
 }
 
 void USBLIB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length)
 {
     // wait till TX buffer busy. ~3 ms
     uint16_t timeout = 3000;
-    while (--timeout>0 && EpData[EPn].TX_PMA_FREE == 0);
-    if( EpData[EPn].TX_PMA_FREE == 0 ) {
+    while (--timeout > 0 && EpData[EPn].TX_PMA_FREE == 0);
+    if (EpData[EPn].TX_PMA_FREE == 0) {
         return;
     }
 
