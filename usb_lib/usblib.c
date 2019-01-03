@@ -18,8 +18,6 @@
 
 #include "stm32l0xx.h"
 #include "usblib.h"
-#include <stdlib.h>
-#include <string.h>
 
 
 #define __SECTION_PMA __attribute__((section(".PMA"))) /* USB PMA */
@@ -32,12 +30,15 @@ USBLIB_SetupPacket   *SetupPacket;
 volatile uint8_t      DeviceAddress = 0;
 volatile USBLIB_WByte LineState;
 
-USBLIB_EPData EpData[EPCOUNT] =
-    {
-        {0, EP_CONTROL, 64, 64, 0, 0, 0, 0, 1},
-        {1, EP_INTERRUPT, 16, 16, 0, 0, 0, 0, 1},
-        {2, EP_BULK, 64, 64, 0, 0, 0, 0, 1},  //IN  (Device -> Host)
-        {3, EP_BULK, 64, 64, 0, 0, 0, 0, 1}}; //OUT (Host   -> Device)
+uint8_t rxBuf0[64];
+uint8_t rxBuf1[16];
+uint8_t rxBuf2[64];
+
+USBLIB_EPData EpData[EPCOUNT] = {
+        {0, EP_CONTROL,   64, 64, 0, 0, (uint16_t *) rxBuf0, 0, 1},
+        {1, EP_INTERRUPT, 16, 16, 0, 0, (uint16_t *) rxBuf1, 0, 1},
+        {2, EP_BULK,      64, 64, 0, 0, 0,                   0, 1},  // IN  (Device -> Host)
+        {3, EP_BULK,      64, 64, 0, 0, (uint16_t *) rxBuf2, 0, 1}}; // OUT (Host   -> Device)
 
 void USBLIB_Init(void)
 {
@@ -198,9 +199,6 @@ void USBLIB_Reset(void)
 
         Addr += EpData[i].RX_Max;
 
-        if (!EpData[i].pRX_BUFF)
-            EpData[i].pRX_BUFF = (uint16_t *)malloc(EpData[i].RX_Max);
-
         *(uint16_t *)&(USB_->EPR[i]) = (uint16_t)(EpData[i].Number | EpData[i].Type | RX_VALID | TX_NAK);
     }
 
@@ -227,8 +225,8 @@ void USBLIB_setStatRx(uint8_t EPn, uint16_t Stat)
 
 void USBLIB_Pma2EPBuf2(uint8_t EPn)
 {
-    uint8_t Count = EpData[EPn].lRX = (EPBufTable[EPn].RX_Count & 0x3FF);
-    uint16_t *Address = (uint16_t *)(USB_PBUFFER + EPBufTable[EPn].RX_Address);
+    register uint8_t Count = EpData[EPn].lRX = (uint8_t) (EPBufTable[EPn].RX_Count & 0x3FF);
+    uint16_t *Address = (uint16_t *) (USB_PBUFFER + EPBufTable[EPn].RX_Address);
     uint16_t *Distination = EpData[EPn].pRX_BUFF;
     for (uint8_t i = 0; i < Count; i++) {
         *Distination = *Address;
@@ -255,15 +253,15 @@ void USBLIB_EPBuf2Pma(uint8_t EPn)
     }
     EpData[EPn].lTX -= Count;
     EpData[EPn].pTX_BUFF = TX_Buff;
-    EpData[EPn].TX_BUFF_FREE = 0;
+    EpData[EPn].TX_PMA_FREE = 0;
 }
 
 void USBLIB_SendData(uint8_t EPn, uint16_t *Data, uint16_t Length)
 {
     // wait till TX buffer busy. ~3 ms
     uint16_t timeout = 3000;
-    while (--timeout>0 && EpData[EPn].TX_BUFF_FREE == 0);
-    if( EpData[EPn].TX_BUFF_FREE == 0 ) {
+    while (--timeout>0 && EpData[EPn].TX_PMA_FREE == 0);
+    if( EpData[EPn].TX_PMA_FREE == 0 ) {
         return;
     }
 
@@ -374,7 +372,7 @@ void USBLIB_EPHandler(uint16_t Status)
             DeviceAddress = 0;
         }
 
-        EpData[EPn].TX_BUFF_FREE = 1;
+        EpData[EPn].TX_PMA_FREE = 1;
 
         if (EpData[EPn].lTX) { //Have to transmit something?
             USBLIB_EPBuf2Pma(EPn);
