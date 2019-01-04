@@ -255,8 +255,6 @@ typedef struct {
     uint16_t *pRX_BUFF;     // RX Buffer pointer
     uint8_t   lRX;          // RX Data length. MAX receive = 64
     uint8_t   TX_PMA_FREE;  // is PMA tx buffer free.
-//    uint8_t   TX_BUFF_SIZE; // Max length of pTX_BUFF buf, NOT a EP Buf!!!
-//    uint32_t  lRX_PMA;      // ?
 } USBLIB_EPData;
 
 typedef struct
@@ -305,12 +303,7 @@ typedef struct {
 #pragma pack(pop)
 
 void USBLIB_Init(void);
-void USBLIB_EP_Init(void);
-//void USBLIB_HandleStatus(void);
-void USBLIB_ResetUSB(void);
 void USBLIB_Reset(void);
-void USBLIB_SetEPTable(uint8_t EP, uint32_t TXAddress, uint32_t TXCount, uint32_t RXAddress, uint32_t RXCount);
-void USBLIB_LogCheckForTransmit(void);
 void USBLIB_Transmit(void *Data, uint16_t Length);
 
 extern USBLIB_EPData EpData[EPCOUNT];

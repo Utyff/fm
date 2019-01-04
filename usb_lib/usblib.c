@@ -234,10 +234,13 @@ void USBLIB_setStatRx(uint8_t EPn, uint16_t Stat)
     *(uint16_t *)&(USB_->EPR[EPn]) = (uint16_t) ((val ^ (Stat & EP_STAT_RX)) & (EP_MASK | EP_STAT_RX));
 }
 
-void dmacpy(void *dst, const void *src, uint8_t count) {
-    DMA1_Channel4->CPAR = (uint32_t)src;   // set peripheral address
-    DMA1_Channel4->CMAR = (uint32_t)dst;   // set memory address
-    DMA1_Channel4->CNDTR = count;          // circle count
+void USBLIB_Pma2EPBuf2(uint8_t EPn)
+{
+    register uint16_t Count = EpData[EPn].lRX = (uint8_t) (EPBufTable[EPn].RX_Count & 0x3FF);
+
+    DMA1_Channel4->CPAR = USB_PBUFFER + EPBufTable[EPn].RX_Address;   // set peripheral address
+    DMA1_Channel4->CMAR = (uint32_t) EpData[EPn].pRX_BUFF;   // set memory address
+    DMA1_Channel4->CNDTR = (uint32_t) ((Count + 1) / 2);    // circle count
     DMA1_Channel4->CCR |= DMA_CCR_EN;      // run DMA channel 4
 
     while (DMA1_Channel4->CNDTR != 0);     // wait transfer complete
@@ -245,32 +248,25 @@ void dmacpy(void *dst, const void *src, uint8_t count) {
     DMA1_Channel4->CCR &= ~DMA_CCR_EN;     // disable DMA channel 4
 }
 
-void USBLIB_Pma2EPBuf2(uint8_t EPn)
-{
-    register uint8_t Count = EpData[EPn].lRX = (uint8_t) (EPBufTable[EPn].RX_Count & 0x3FF);
-    uint16_t *Address = (uint16_t *) (USB_PBUFFER + EPBufTable[EPn].RX_Address);
-    uint16_t *Distination = EpData[EPn].pRX_BUFF;
-
-    dmacpy(Distination, Address, (uint8_t) ((Count + 1) / 2));
-}
-
 void USBLIB_EPBuf2Pma(uint8_t EPn)
 {
-    uint16_t *Distination;
-    uint16_t *TX_Buff;
-    register uint8_t   Count;
+    register uint16_t Count;
     register USBLIB_EPData *ep = &EpData[EPn];
 
-    Count = (uint8_t) (ep->lTX <= ep->TX_Max ? ep->lTX : ep->TX_Max);
+    Count = ep->lTX <= ep->TX_Max ? ep->lTX : ep->TX_Max;
     EPBufTable[EPn].TX_Count = Count;
 
-    TX_Buff = ep->pTX_BUFF;
-    Distination = (uint16_t *)(USB_PBUFFER + EPBufTable[EPn].TX_Address);
+    DMA1_Channel4->CPAR = (uint32_t) ep->pTX_BUFF;   // set peripheral address
+    DMA1_Channel4->CMAR = USB_PBUFFER + EPBufTable[EPn].TX_Address;   // set memory address
+    DMA1_Channel4->CNDTR = (uint32_t) ((Count + 1) / 2);          // circle count
+    DMA1_Channel4->CCR |= DMA_CCR_EN;      // run DMA channel 4
 
-    dmacpy(Distination, TX_Buff, (uint8_t) ((Count + 1) / 2));
+    while (DMA1_Channel4->CNDTR != 0);     // wait transfer complete
+
+    DMA1_Channel4->CCR &= ~DMA_CCR_EN;     // disable DMA channel 4
 
     ep->lTX -= Count;
-    ep->pTX_BUFF = TX_Buff + ((Count + 1) / 2);
+    ep->pTX_BUFF = ep->pTX_BUFF + ((Count + 1) / 2);
     ep->TX_PMA_FREE = 0;
 }
 
