@@ -123,7 +123,7 @@ typedef struct {
 
 /*
 //Структура регистрового файла rda5807
-typedef union 
+typedef union
 {
   struct 
   {
@@ -144,8 +144,25 @@ typedef union
   } Regs;
   uint16_t Words[14];
   uint8_t Bytes[28];
-} tRDA5807_RegFile;
-*/
+} tRDA5807_RegFile; //*/
+
+typedef struct
+{
+    tReg02h     Reg02;
+    tReg03h     Reg03;
+    tReg04h     Reg04;
+    tReg05h     Reg05;
+    tReg06h     Reg06;
+    tReg07h     Reg07;
+    uint16_t    Reg08;        // Регистр используется для прямой установки частоты (не через каналы)
+    uint16_t    Reg09;
+    tReg0Ah     Reg0A;
+    tReg0Bh     Reg0B;
+    uint16_t    RDSA;
+    uint16_t    RDSB;
+    uint16_t    RDSC;
+    uint16_t    RDSD;
+} Regs;
 
 // Процедура меняет местами байты попарно в буфере pBuff
 void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count);
@@ -191,8 +208,19 @@ uint16_t rda5807_GetFreq_In100Khz();
 // Процедура стартует поиск радиостанции вверх/вниз
 void rda5807_StartSeek(uint8_t Up);
 
+// Функция читает RSSI (Receive signal strength indicator)
+uint16_t rda5807_GetRSSI();
+
+// Процедура стартует поиск радиостанции вверх/вниз
+void rda5807_GetRDS();
+
 // Функция возвращает состояние бита STR (SeekTuneReadyFlag)
 // SeekTuneReadyFlag=1 пока идёт процесс настройки на частоту или поиск радиостанции.
 uint8_t rda5807_Get_SeekTuneReadyFlag();
+tReg0Ah rda5807_tReg0Ah();
+tReg0Bh rda5807_tReg0Bh();
+
+extern char rdsStation[128];
+extern char rdsRadioText[128];
 
 #endif

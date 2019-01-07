@@ -384,3 +384,102 @@ uint8_t rda5807_Get_SeekTuneReadyFlag() {
 
     return Reg0A.bSTC;
 }
+
+tReg0Ah rda5807_tReg0Ah() {
+    tReg0Ah Reg0A;
+
+    // Читаем регистр 0x0A
+    rda5807_read(0x0A, (uint16_t *) &Reg0A, 1);
+
+    return Reg0A;
+}
+
+tReg0Bh rda5807_tReg0Bh() {
+    tReg0Bh Reg0B;
+
+    // Читаем регистр 0x0B
+    rda5807_read(0x0B, (uint16_t *) &Reg0B, 1);
+
+    return Reg0B;
+}
+
+/**
+  * Функция читает RSSI (Receive signal strength indicator)
+  */
+uint16_t rda5807_GetRSSI() {
+    tReg0Bh Reg0B;
+
+    // Читаем регистр 0x0B
+    rda5807_read(0x0B, (uint16_t *) &Reg0B, 1);
+
+    return Reg0B.bRSSI;
+}
+
+char rdsStation[128] = "";
+char rdsRadioText[128] = "";
+char segRDS[8];
+char segRDS1[64];
+uint16_t RDS[8];
+//uint8_t rds_regs[32];
+//Regs regs;
+
+void addChar(char *str, char ch) {
+    for(int i = 0; i<127; i++) {
+        if(str[i]==0) {
+            str[i] = ch;
+            str[i+1] = '\0';
+            break;
+        }
+    }
+}
+char grp, ver;
+
+void rda5807_GetRDS() {
+    tReg0Ah regA = rda5807_tReg0Ah();
+    if (regA.bRDSR == 0) {
+        return;
+    }
+
+    // Читаем регистры 0x0c 0x0d 0x0e 0x0f
+    rda5807_read(0x0C, (uint16_t *) &RDS, 4);
+//    rda5807_read(0x02, (uint16_t *) &regs, 14);
+//    rda5807_read_regfile((uint16_t *) &rds_regs, 6);
+
+    int i;
+    grp = (char) ((RDS[1] >> 12) & 0xf);
+    if (RDS[1] & 0x0800) {
+        ver = 1;
+    } else {
+        switch (grp) {
+            case 0:
+                i = (RDS[1] & 3) << 1;
+                segRDS[i] = (char) (RDS[3] >> 8);
+                segRDS[i + 1] = (char) (RDS[3] & 0xFF);
+
+                rdsStation[0] = '\0';
+                for (i = 0; i < 8; i++) {
+                    if (segRDS[i] > 31 && segRDS[i] < 127) {
+                        addChar(rdsStation, segRDS[i]);
+                    }
+                    else {
+                        addChar(rdsStation, ' ');
+                    }
+                }
+                rdsStation[9] = '\0';
+                break;
+            case 2:
+                i = (RDS[1] & 15) << 2;
+                segRDS1[i] = (char) (RDS[2] >> 8);
+                segRDS1[i + 1] = (char) (RDS[2] & 0xFF);
+                segRDS1[i + 2] = (char) (RDS[3] >> 8);
+                segRDS1[i + 3] = (char) (RDS[3] & 0xFF);
+
+                rdsRadioText[0] = '\0';
+                for (i = 0; i < 42; i++) {
+                    addChar(rdsRadioText, segRDS[i]);
+                }
+                break;
+            default:;
+        }
+    }
+}

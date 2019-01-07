@@ -88,7 +88,7 @@ const uint8_t USB_DEVICE_DESC[] =
         (uint8_t)0x01,                      //    bcdDevice
         (uint8_t)1,                         //    iManufacturer
         (uint8_t)2,                         //    iProduct
-        (uint8_t)3,                         //    iSerialNumbert
+        (uint8_t)3,                         //    iSerialNumber
         (uint8_t)1                          //    bNumConfigurations
 };
 const uint8_t USBD_CDC_CFG_DESCRIPTOR[] =

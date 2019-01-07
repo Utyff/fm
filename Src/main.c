@@ -113,6 +113,7 @@ void getButtons() {
 
 void getFreq(char *buf) {
     _itoa(rda5807_GetFreq_In100Khz(), buf);
+    // add dot
     int i = 0;
     while (buf[i] != 0) i++;
     buf[i + 1] = 0;
@@ -129,11 +130,34 @@ void drawScreen() {
     ssd1306_WriteString(buf, Font_11x18, White);
     ssd1306_WriteString(" MHz", Font_7x10, White);
 
+    tReg0Ah regA = rda5807_tReg0Ah();
+    tReg0Bh regB = rda5807_tReg0Bh();
+    _itoa(regB.bRSSI, buf);
+    ssd1306_SetCursor(110, 0);
+    ssd1306_WriteString(buf, Font_7x10, White);
+
+    if (regA.bST == 1) {
+        ssd1306_SetCursor(84, 24); // 84 = 128-6*7-2
+        ssd1306_WriteString("stereo", Font_7x10, White);
+    }
+
+    if (regB.bFM_TRUE == 1) {
+        ssd1306_SetCursor(91, 12); // 91 = 128-5*7-2
+        ssd1306_WriteString("tuned", Font_7x10, White);
+    }
+
+    rda5807_GetRDS();
+
     if (mode == MODE_VOL) {
         _itoa(volume, buf);
         ssd1306_SetCursor(0, 40);
         ssd1306_WriteString("vol: ", Font_11x18, White);
         ssd1306_WriteString(buf, Font_11x18, White);
+    } else {
+        ssd1306_SetCursor(0, 40);
+        ssd1306_WriteString(rdsStation, Font_7x10, White);
+        ssd1306_SetCursor(0, 52);
+        ssd1306_WriteString(rdsRadioText, Font_7x10, White);
     }
 
     ssd1306_UpdateScreen();
@@ -335,18 +359,17 @@ void Delay(uint32_t delay) {
 }
 
 void _itoa(uint16_t i, char *p) {
-//    char const digit[] = "0123456789";
     if (i < 0) {
         *p++ = '-';
         i *= -1;
     }
     int shifter = i;
-    do { //Move to where representation ends
+    do { // Move to where representation ends
         ++p;
         shifter = shifter / 10;
     } while (shifter);
     *p = '\0';
-    do { //Move back, inserting digits as u go
+    do { // Move back, inserting digits as u go
         *--p = (char) ('0' + i % 10);
         i = i / (uint16_t) 10;
     } while (i);
