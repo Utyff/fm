@@ -1,74 +1,29 @@
 #include "rda5807m.h"
 #include "main.h"
 
-uint8_t buf10[64];
-uint8_t buf11[64];
-
 
 /**
   * Инициализация rda5807
   */
 void rda5807_init() {
-    uint8_t buf[2] = {0, 0};
+    uint16_t ID;
 
     i2c_init();
 
-    uint8_t err = I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, 0, buf, 2);
-
-    //HAL_StatusTypeDef err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
-//    prints("\n\r -- init err: ");
-//    printi(err);
-//    prints(" | id: ");
-//    printi(buf[0]);
-//    printi(buf[1]);
-//    prints("\n\r");
-
-    if (err != 0 || buf[0] != 0x58 || buf[1] != 4) {
-        Error_Handler();
-    }
-/*    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf, 1);
-    printf("\n\r -- err: %x | 0: %x 1: %x  --\n\r", err, buf[0], buf[1]);
-
-    if (err != HAL_OK || buf[0] != 0x58 || buf[1] != 0) {
+    // check register 0x0 for chip ID
+    uint8_t err = I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, 0x0, (uint8_t *) &ID, 2);
+    if (err != 0 || ID != 0x0458) {
         Error_Handler();
     }
 
-    for (i = 0; i < 64; i++) {
-        buf10[i] = 0;
-        buf11[i] = 0;
-    }
-
-    err = HAL_I2C_Mem_Read(I2C1, RDA5807_RandAccess_Addr << 1u, 0, I2C_MEMADD_SIZE_8BIT, buf11, 64);
-    if (err != HAL_OK) {
-        Error_Handler();
-    }
-    err = HAL_I2C_Master_Receive(I2C1, RDA5807_SeqAccess_Addr << 1u, buf10, 64);
-    if (err != HAL_OK) {
-        Error_Handler();
-    }
-
-    int i;
-    for (i = 0; i < 64; i++) { printf(" %02x", buf10[i]); }
-    printf("\n\r");
-    for (i = 0; i < 64; i++) { printf(" %02x", buf11[i]); }
-    printf("\n\r");
-*/
     rda5807_SoftReset();
     rda5807_SetupDefault();
 
     uint32_t start = stick;
-    while (stick - start < 10);
+    while (stick - start < 2);
 
-//    printf("start freq: %u \n\r", rda5807_GetFreq_In100Khz());
     rda5807_SetVolume(1);
     rda5807_StartSeek(1);
-
-/*    while (rda5807_Get_SeekTuneReadyFlag())
-        printf(".");
-    printf(" ---\n\r");
-    printf("tuned freq: %u \n\r", rda5807_GetFreq_In100Khz());//*/
-//    prints("\n\rtuned freq: ");
-//    printi(rda5807_GetFreq_In100Khz());
 }
 
 /**
@@ -89,14 +44,6 @@ void rda5807_bytes_change(uint8_t *pBuff, uint8_t Count) {
   * Используется I2C-адрес RDA5807_SeqAccess_Addr
   */
 void rda5807_read_regfile(uint16_t *pBuff, uint8_t RegNum) {
-    /*/ Выдаём START на шину
-    if (i2cm_Start(RDA5807_SeqAccess_Addr, 1)) {
-        Error_Handler();
-    }
-
-    // Читаем
-    i2cm_ReadBuffAndStop((uint8_t *) pBuff, RegNum << 1u); //*/
-
     if (I2C_Master_Receive(RDA5807_SeqAccess_Addr << 1u, (uint8_t *) pBuff, RegNum << 1u)) {
         Error_Handler();
     }
@@ -108,18 +55,7 @@ void rda5807_read_regfile(uint16_t *pBuff, uint8_t RegNum) {
   * Используется I2C-адрес RDA5807_SeqAccess_Addr
   */
 void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum) {
-//    int8_t err;
-
-    /*/ Выдаём START на шину
-    err = i2cm_Start(I2Cx, RDA5807_SeqAccess_Addr, 0, RDA5807_TO);
-    if (err) {
-        Error_Handler();
-    } //*/
-
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
-
-//    err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
-//    i2cm_Stop(I2Cx, RDA5807_TO);
 
     if (I2C_Master_Transmit(RDA5807_SeqAccess_Addr << 1u, (uint8_t *) pBuff, RegNum << 1u)) {
         Error_Handler();
@@ -133,21 +69,6 @@ void rda5807_write_regfile(uint16_t *pBuff, uint8_t RegNum) {
   * Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
   */
 void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
-    /*/ Выдаём START на шину
-    if (i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 0, RDA5807_TO)) {
-        Error_Handler();
-    }
-    if (i2cm_WriteBuff(I2Cx, &RegAddr, 1, RDA5807_TO)) {
-        Error_Handler();
-    }
-
-    // Выдаём START на шину
-    if (i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 1, RDA5807_TO)) {
-        Error_Handler();
-    }
-    // Читаем
-    i2cm_ReadBuffAndStop(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO); //*/
-
     if (I2C_Mem_Read(RDA5807_RandAccess_Addr << 1u, RegAddr, (uint8_t *) pBuff, RegNum << 1u)) {
         Error_Handler();
     }
@@ -160,25 +81,10 @@ void rda5807_read(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
   * Используется I2C-адрес RDA5807_RandAccess_Addr (для режима совместимости с rda5800)
   */
 void rda5807_write(uint8_t RegAddr, uint16_t *pBuff, uint8_t RegNum) {
-    //int8_t err;
-
-    /*/ Выдаём START на шину
-    err = i2cm_Start(I2Cx, RDA5807_RandAccess_Addr, 0, RDA5807_TO);
-    if (err) {
-        Error_Handler();
-    }
-
-    if (i2cm_WriteBuff(I2Cx, &RegAddr, 1, RDA5807_TO)) {
-        Error_Handler();
-    } //*/
-
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
 
-    //err = i2cm_WriteBuff(I2Cx, (uint8_t *) pBuff, RegNum << 1, RDA5807_TO);
-    //i2cm_Stop(I2Cx, RDA5807_TO);
-
     if (I2C_Mem_Write(RDA5807_RandAccess_Addr << 1u, RegAddr, (uint8_t *) pBuff, RegNum << 1u)) {
-        return; //Error_Handler();
+        return; // Error_Handler();
     }
 
     rda5807_bytes_change((uint8_t *) pBuff, RegNum << 1u);
@@ -366,7 +272,7 @@ void rda5807_StartSeek(uint8_t Up) {
 
     Reg02.bSKMODE = 1;          // 07 Seek Mode (0 = wrap at the upper or lower band limit and continue seeking; 1 = stop seeking at the upper or lower band limit)
     Reg02.bSEEK = 1;            // 08 Seek (0 = Disable stop seek; 1 = Enable)
-    Reg02.bSEEKUP = Up ? 1 : 0; // 09 Seek Up (0 = Seek down; 1 = Seek up)
+    Reg02.bSEEKUP = (uint16_t) (Up ? 1 : 0); // 09 Seek Up (0 = Seek down; 1 = Seek up)
 
     // Пишем регистр 0x02
     rda5807_write(0x02, (uint16_t *) &Reg02, 1);
@@ -382,7 +288,7 @@ uint8_t rda5807_Get_SeekTuneReadyFlag() {
     // Читаем регистр 0x0A
     rda5807_read(0x0A, (uint16_t *) &Reg0A, 1);
 
-    return Reg0A.bSTC;
+    return (uint8_t) Reg0A.bSTC;
 }
 
 tReg0Ah rda5807_tReg0Ah() {
@@ -432,9 +338,10 @@ void addChar(char *str, char ch) {
         }
     }
 }
-char grp, ver;
 
 void rda5807_GetRDS() {
+    char grp, ver;
+
     tReg0Ah regA = rda5807_tReg0Ah();
     if (regA.bRDSR == 0) {
         return;

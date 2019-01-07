@@ -119,33 +119,6 @@ typedef struct {
     uint16_t bRSSI      :7;     // 9-15 RSSI (000000 = min; 111111 = max) RSSI scale is logarithmic
 } tReg0Bh;      // 
 
-
-
-/*
-//Структура регистрового файла rda5807
-typedef union
-{
-  struct 
-  {
-    tReg02h     Reg02;
-    tReg03h     Reg03;
-    tReg04h     Reg04;
-    tReg05h     Reg05;
-    tReg06h     Reg06;
-    tReg07h     Reg07;
-    uint16_t    Reg08;        // Регистр используется для прямой установки частоты (не через каналы)
-    uint16_t    Reg09;
-    tReg0Ah     Reg0A;
-    tReg0Bh     Reg0B;
-    uint16_t    RDSA;
-    uint16_t    RDSB;
-    uint16_t    RDSC;
-    uint16_t    RDSD;
-  } Regs;
-  uint16_t Words[14];
-  uint8_t Bytes[28];
-} tRDA5807_RegFile; //*/
-
 typedef struct
 {
     tReg02h     Reg02;
