@@ -14,7 +14,7 @@ void i2c_init() {
     // open drain for I2C1 signals for PB6 and PB7
     GPIOB->OTYPER |= GPIO_OTYPER_OT_6 | GPIO_OTYPER_OT_7;
     // AF1 for I2C1 signals for PB6 and PB7
-    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFRL6 | GPIO_AFRL_AFRL7))
+    GPIOB->AFR[0] = (GPIOB->AFR[0] & ~(GPIO_AFRL_AFSEL6 | GPIO_AFRL_AFSEL7))
                     | (1u << (6u * 4)) | (1u << (7u * 4));
     // Select AF mode (10) on PB6 and PB7
     GPIOB->MODER = (GPIOB->MODER & ~(GPIO_MODER_MODE6 | GPIO_MODER_MODE7))

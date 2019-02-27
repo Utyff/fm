@@ -277,7 +277,7 @@ void Configure_GPIO_USART2(void) {
     GPIOA->MODER = (GPIOA->MODER & ~(GPIO_MODER_MODE2 | GPIO_MODER_MODE3))
                    | (GPIO_MODER_MODE2_1 | GPIO_MODER_MODE3_1);
     // AF4 for USART2 signals
-    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFRL2 | GPIO_AFRL_AFRL3))
+    GPIOA->AFR[0] = (GPIOA->AFR[0] & ~(GPIO_AFRL_AFSEL2 | GPIO_AFRL_AFSEL3))
                     | (4u << (2u * 4)) | (4u << (3u * 4));
 }
 
