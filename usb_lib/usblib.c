@@ -62,8 +62,8 @@ void USBLIB_Init(void)
     DMA1_Channel4->CCR |= DMA_CCR_MEM2MEM; // enable MEM2MEM mode
     DMA1_Channel4->CCR |= DMA_CCR_PINC;    // enable peripheral address increment
     DMA1_Channel4->CCR |= DMA_CCR_MINC;    // enable memory address increment
-    DMA1_Channel4->CCR |= DMA_CCR_PSIZE_0; // peripheral wide - 16 бит
-    DMA1_Channel4->CCR |= DMA_CCR_MSIZE_0; // memory wide - 16 бит
+    DMA1_Channel4->CCR |= DMA_CCR_PSIZE_0; // peripheral wide - 16 пїЅпїЅпїЅ
+    DMA1_Channel4->CCR |= DMA_CCR_MSIZE_0; // memory wide - 16 пїЅпїЅпїЅ
     DMA1_Channel4->CCR |= DMA_CCR_PL;      // priority - very high
     DMA1_Channel4->CCR &= ~DMA_CCR_CIRC;   // disable DMA circular mode
 }
@@ -454,21 +454,21 @@ void USBLIB_Transmit(void *Data, uint16_t Length)
     }
 }
 
-__weak void uUSBLIB_DataReceivedHandler(uint16_t *Data, uint16_t Length)
+__attribute__((weak)) void uUSBLIB_DataReceivedHandler(uint16_t *Data, uint16_t Length)
 {
     /* NOTE: This function Should not be modified, when the callback is needed,
        the uUSBLIB_DataReceivedHandler could be implemented in the user file
     */
 }
 
-__weak void uUSBLIB_DataTransmitedHandler(uint8_t EPn, USBLIB_EPData EpData)
+__attribute__((weak)) void uUSBLIB_DataTransmitedHandler(uint8_t EPn, USBLIB_EPData EpData)
 {
     /* NOTE: This function Should not be modified, when the callback is needed,
        the uUSBLIB_EPStateHandler could be implemented in the user file
     */
 }
 
-__weak void uUSBLIB_LineStateHandler(USBLIB_WByte LineState)
+__attribute__((weak)) void uUSBLIB_LineStateHandler(USBLIB_WByte LineState)
 {
     /* NOTE: This function Should not be modified, when the callback is needed,
        the uUSBLIB_LineStateHandler could be implemented in the user file

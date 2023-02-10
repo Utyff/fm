@@ -312,7 +312,7 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE uint8_t USBLIB_ReadyToTransmi
 }
 void uUSBLIB_LineStateHandler(USBLIB_WByte LineState);
 
-__weak void uUSBLIB_DataReceivedHandler(uint16_t *Data, uint16_t Length);
-__weak void uUSBLIB_DataTransmitedHandler(uint8_t EPn, USBLIB_EPData EpData);
+__attribute__((weak)) void uUSBLIB_DataReceivedHandler(uint16_t *Data, uint16_t Length);
+__attribute__((weak)) void uUSBLIB_DataTransmitedHandler(uint8_t EPn, USBLIB_EPData EpData);
 
 #endif
